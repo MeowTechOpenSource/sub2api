@@ -1,3 +1,4 @@
+export default {
     ops: {
       title: '營運維護監控',
       description: '營運維護監控與排障',
@@ -806,3 +807,4 @@
     },
 
     // Settings
+}
