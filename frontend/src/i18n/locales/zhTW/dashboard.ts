@@ -1,3 +1,4 @@
+export default {
   dashboard: {
     title: '儀表板',
     welcomeMessage: '歡迎回來！這是您用戶的概覽。',
@@ -812,3 +813,4 @@
   },
 
   // Admin
+}
