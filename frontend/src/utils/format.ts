@@ -5,6 +5,16 @@
 
 import { i18n, getLocale } from '@/i18n'
 
+const LOCALE_BCP47: Record<string, string> = {
+  en: 'en',
+  zh: 'zh',
+  zhTW: 'zh-TW',
+}
+
+function toBCP47(locale: string): string {
+  return LOCALE_BCP47[locale] ?? locale
+}
+
 /**
  * 格式化相对时间
  * @param date 日期字符串或 Date 对象
@@ -117,7 +127,7 @@ export function formatDate(
   const d = new Date(date)
   if (isNaN(d.getTime())) return ''
 
-  const locale = localeOverride ?? getLocale()
+  const locale = toBCP47(localeOverride ?? getLocale())
   return new Intl.DateTimeFormat(locale, options).format(d)
 }
 
