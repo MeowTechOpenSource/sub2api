@@ -1,3 +1,4 @@
+export default {
     scheduledTests: {
       title: '定時測試',
       addPlan: '新增計劃',
@@ -577,3 +578,4 @@
     },
 
     // Ops Monitoring
+}
