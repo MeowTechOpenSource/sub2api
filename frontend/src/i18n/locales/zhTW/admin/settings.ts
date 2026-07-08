@@ -1,3 +1,4 @@
+export default {
     settings: {
       title: '系統設定',
       description: '管理註冊、電郵驗證、預設值和 SMTP 設定',
@@ -1260,3 +1261,4 @@
       saveFailed: '儲存模板失敗',
       deleteFailed: '刪除模板失敗'
     }
+}
