@@ -1,3 +1,4 @@
+export default{
     // Dashboard
     dashboard: {
       title: '管理控制台',
@@ -1017,3 +1018,4 @@
     },
 
     // Available Channels (aggregated read-only view)
+}
