@@ -1,3 +1,4 @@
+export default {
     availableChannels: {
       title: '可用渠道',
       description: '按渠道聚合查看關聯分組與支援模型（已展開通配符）',
@@ -708,3 +709,4 @@
     },
 
     // Accounts Management
+}
