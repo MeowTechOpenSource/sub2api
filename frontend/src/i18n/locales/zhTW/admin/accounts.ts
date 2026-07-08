@@ -1,4 +1,5 @@
-    accounts: {
+export default {
+	accounts: {
       title: '用戶管理',
       description: '管理 AI 平台用戶和 Cookie',
       createAccount: '新增用戶',
@@ -1253,3 +1254,4 @@
     },
 
     // Scheduled Tests
+}
