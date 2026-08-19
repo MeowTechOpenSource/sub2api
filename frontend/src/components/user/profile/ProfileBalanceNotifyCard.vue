@@ -26,14 +26,14 @@
             <span class="text-xs text-gray-400 ml-2">{{ t('profile.balanceNotify.thresholdHint') }}</span>
           </label>
           <div class="flex items-center gap-2">
-            <span class="text-gray-500">$</span>
+            <span class="text-gray-500">{{ currencyUnit }}</span>
             <input
               v-model.number="customThreshold"
               type="number"
               min="0"
               step="0.01"
               class="input flex-1"
-              :placeholder="systemDefaultThreshold > 0 ? `${t('profile.balanceNotify.systemDefault')} $${systemDefaultThreshold}` : t('profile.balanceNotify.thresholdPlaceholder')"
+              :placeholder="systemDefaultThreshold > 0 ? `${t('profile.balanceNotify.systemDefault')} ${formatCurrency(systemDefaultThreshold)}` : t('profile.balanceNotify.thresholdPlaceholder')"
             />
             <button
               @click="handleThresholdUpdate"
@@ -53,7 +53,7 @@
           <!-- Saved email entries -->
           <div v-if="emailEntries.length > 0" class="space-y-2 mb-3">
             <div v-for="(entry, idx) in emailEntries" :key="idx"
-              class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-dark-700 rounded-lg">
+              class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2 dark:border-dark-600 dark:bg-dark-700/70">
               <div class="flex items-center gap-2 min-w-0 flex-1">
                 <label class="relative inline-flex items-center cursor-pointer shrink-0">
                   <input type="checkbox" :checked="!entry.disabled" @change="handleEmailToggle(entry)" class="sr-only peer" />
@@ -164,8 +164,11 @@ import { useAppStore } from '@/stores/app'
 import { userAPI } from '@/api'
 import { extractApiErrorMessage } from '@/utils/apiError'
 import type { NotifyEmailEntry } from '@/types'
+import { formatCurrency } from '@/utils/format'
+import { getCurrencyName, getCurrencySymbol } from '@/utils/currency'
 
 const maxTotalEmails = 3
+const currencyUnit = getCurrencySymbol() || getCurrencyName()
 
 interface PendingEmail {
   email: string

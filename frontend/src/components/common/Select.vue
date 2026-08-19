@@ -473,18 +473,19 @@ onUnmounted(() => {
 <style scoped>
 .select-trigger {
   @apply flex w-full items-center justify-between gap-2;
-  @apply rounded-xl px-4 py-2.5 text-sm;
-  @apply bg-white dark:bg-dark-800;
-  @apply border border-gray-200 dark:border-dark-600;
+  @apply rounded-lg px-4 py-2.5 text-sm font-medium;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
   @apply text-gray-900 dark:text-gray-100;
   @apply transition-all duration-200;
-  @apply focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30;
-  @apply hover:border-gray-300 dark:hover:border-dark-500;
+  @apply focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
+  @apply hover:border-primary-300 dark:hover:border-primary-700;
   @apply cursor-pointer;
+  box-shadow: 0 1px 2px rgba(31, 41, 55, 0.03);
 }
 
 .select-trigger-open {
-  @apply border-primary-500 ring-2 ring-primary-500/30;
+  @apply border-primary-500 ring-2 ring-primary-500/20;
 }
 
 .select-trigger-error {
@@ -513,17 +514,18 @@ onUnmounted(() => {
 <style>
 .select-dropdown-portal {
   @apply w-max min-w-[200px];
-  @apply bg-white dark:bg-dark-800;
-  @apply rounded-xl;
-  @apply border border-gray-200 dark:border-dark-700;
-  @apply shadow-lg shadow-black/10 dark:shadow-black/30;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-float);
   @apply overflow-hidden;
   pointer-events: auto !important;
 }
 
 .select-dropdown-portal .select-search {
-  @apply flex items-center gap-2 px-3 py-2;
-  @apply border-b border-gray-100 dark:border-dark-700;
+  @apply flex items-center gap-2 px-3 py-2.5;
+  border-bottom: 1px solid var(--line);
+  background-color: var(--surface-muted);
 }
 
 .select-dropdown-portal .select-search-input {
@@ -542,7 +544,7 @@ onUnmounted(() => {
   @apply px-4 py-2.5 text-sm;
   @apply text-gray-700 dark:text-gray-300;
   @apply cursor-pointer transition-colors duration-150;
-  @apply hover:bg-gray-50 dark:hover:bg-dark-700;
+  @apply hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-300;
   pointer-events: auto !important;
 }
 
@@ -552,7 +554,7 @@ onUnmounted(() => {
 }
 
 .select-dropdown-portal .select-option-focused {
-  @apply bg-gray-100 dark:bg-dark-700;
+  @apply bg-primary-50 dark:bg-primary-900/20;
 }
 
 .select-dropdown-portal .select-option-disabled {

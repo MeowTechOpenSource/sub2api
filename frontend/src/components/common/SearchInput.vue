@@ -7,7 +7,7 @@
       :value="modelValue"
       type="text"
       class="input pl-10"
-      :placeholder="placeholder"
+      :placeholder="resolvedPlaceholder"
       @input="handleInput"
     />
   </div>
@@ -15,6 +15,8 @@
 
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 
 const props = withDefaults(defineProps<{
@@ -22,9 +24,11 @@ const props = withDefaults(defineProps<{
   placeholder?: string
   debounceMs?: number
 }>(), {
-  placeholder: 'Search...',
   debounceMs: 300
 })
+
+const { t } = useI18n()
+const resolvedPlaceholder = computed(() => props.placeholder || t('common.searchPlaceholder'))
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void

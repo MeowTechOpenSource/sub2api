@@ -66,6 +66,12 @@ export default {
     optional: 'optional',
     selectOption: 'Select an option',
     searchPlaceholder: 'Search...',
+    accessibility: {
+      primaryNavigation: 'Primary navigation',
+      userMenu: 'User menu',
+      toggleNavigation: 'Toggle navigation',
+      languageMenu: 'Choose language'
+    },
     noOptionsFound: 'No options found',
     noGroupsAvailable: 'No groups available',
     unknownError: 'Unknown error occurred',
@@ -158,6 +164,10 @@ export default {
   // Navigation
   nav: {
     dashboard: 'Dashboard',
+    chat: 'Chat',
+    workspace: 'Workspace',
+    models: 'Models',
+    billing: 'Billing',
     announcements: 'Announcements',
     apiKeys: 'API Keys',
     batchImage: 'Batch Images',
@@ -172,8 +182,7 @@ export default {
     users: 'Users',
     groups: 'Groups',
     channels: 'Channels',
-    availableChannels: 'Available Channels',
-    modelPlaza: 'Model Plaza',
+    availableChannels: 'Pricing',
     subscriptions: 'Subscriptions',
     accounts: 'Accounts',
     proxies: 'Proxies',
@@ -209,14 +218,20 @@ export default {
 
   // Auth
   auth: {
+    secureAccess: 'Secure API access',
+    gatewayStatus: 'Gateway status',
+    operational: 'Operational',
+    authentication: 'Authentication',
+    encrypted: 'Encrypted',
+    smartRouting: 'Smart routing',
+    active: 'Active',
+    usageMetering: 'Usage metering',
+    realTime: 'Real time',
+    protectedSession: 'Protected session',
     welcomeBack: 'Welcome Back',
     signInToAccount: 'Sign in to your account to continue',
     signIn: 'Sign In',
     signingIn: 'Signing in...',
-    passkeySignIn: 'Sign in with a passkey',
-    passkeySigningIn: 'Waiting for passkey...',
-    passkeyCancelled: 'Passkey sign-in was cancelled.',
-    passkeyFailed: 'Passkey sign-in failed. Please try again.',
     createAccount: 'Create Account',
     signUpToStart: 'Sign up to start using {siteName}',
     signUp: 'Sign up',

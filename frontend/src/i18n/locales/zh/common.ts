@@ -66,6 +66,12 @@ export default {
     optional: '可选',
     selectOption: '请选择',
     searchPlaceholder: '搜索...',
+    accessibility: {
+      primaryNavigation: '主导航',
+      userMenu: '用户菜单',
+      toggleNavigation: '展开或收起导航',
+      languageMenu: '选择语言'
+    },
     noOptionsFound: '无匹配选项',
     noGroupsAvailable: '无可用分组',
     unknownError: '发生未知错误',
@@ -158,6 +164,10 @@ export default {
   // Navigation
   nav: {
     dashboard: '仪表盘',
+    chat: '聊天',
+    workspace: '工作区',
+    models: '模型',
+    billing: '账单与订阅',
     announcements: '公告',
     apiKeys: 'API 密钥',
     batchImage: '批量生图',
@@ -172,8 +182,7 @@ export default {
     users: '用户管理',
     groups: '分组管理',
     channels: '渠道管理',
-    availableChannels: '可用渠道',
-    modelPlaza: '模型广场',
+    availableChannels: '价格',
     subscriptions: '订阅管理',
     accounts: '账号管理',
     proxies: 'IP管理',
@@ -209,14 +218,20 @@ export default {
 
   // Auth
   auth: {
+    secureAccess: '安全 API 访问',
+    gatewayStatus: '网关状态',
+    operational: '运行正常',
+    authentication: '身份验证',
+    encrypted: '已加密',
+    smartRouting: '智能路由',
+    active: '已启用',
+    usageMetering: '用量计量',
+    realTime: '实时',
+    protectedSession: '受保护的会话',
     welcomeBack: '欢迎回来',
     signInToAccount: '登录您的账户以继续',
     signIn: '登录',
     signingIn: '登录中...',
-    passkeySignIn: '使用 Passkey 登录',
-    passkeySigningIn: '正在等待 Passkey...',
-    passkeyCancelled: '已取消 Passkey 登录。',
-    passkeyFailed: 'Passkey 登录失败，请重试。',
     createAccount: '创建账户',
     signUpToStart: '注册以开始使用 {siteName}',
     signUp: '注册',

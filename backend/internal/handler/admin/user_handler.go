@@ -90,9 +90,10 @@ type UpdateUserRequest struct {
 
 // UpdateBalanceRequest represents balance update request
 type UpdateBalanceRequest struct {
-	Balance   float64 `json:"balance" binding:"required,gt=0"`
-	Operation string  `json:"operation" binding:"required,oneof=set add subtract"`
-	Notes     string  `json:"notes"`
+	Balance   float64    `json:"balance" binding:"required,gt=0"`
+	Operation string     `json:"operation" binding:"required,oneof=set add subtract"`
+	Notes     string     `json:"notes"`
+	ExpiresAt *time.Time `json:"expires_at"`
 }
 
 type BindUserAuthIdentityRequest struct {
@@ -242,7 +243,6 @@ func (h *UserHandler) BindAuthIdentity(c *gin.Context) {
 		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
-
 	input := service.AdminBindAuthIdentityInput{
 		ProviderType:    req.ProviderType,
 		ProviderKey:     req.ProviderKey,
@@ -404,6 +404,15 @@ func (h *UserHandler) UpdateBalance(c *gin.Context) {
 		Body:   req,
 	}
 	executeAdminIdempotentJSON(c, "admin.users.balance.update", idempotencyPayload, service.DefaultWriteIdempotencyTTL(), func(ctx context.Context) (any, error) {
+		if expiringService, ok := h.adminService.(interface {
+			UpdateUserBalanceWithExpiry(context.Context, int64, float64, string, string, *time.Time) (*service.User, error)
+		}); ok {
+			user, execErr := expiringService.UpdateUserBalanceWithExpiry(ctx, userID, req.Balance, req.Operation, req.Notes, req.ExpiresAt)
+			if execErr != nil {
+				return nil, execErr
+			}
+			return dto.UserFromServiceAdmin(user), nil
+		}
 		user, execErr := h.adminService.UpdateUserBalance(ctx, userID, req.Balance, req.Operation, req.Notes)
 		if execErr != nil {
 			return nil, execErr

@@ -38,18 +38,35 @@ export default {
     restartRequired: '請重啟服務以套用更新',
     restartNow: '立即重啟',
     restarting: '正在重啟...',
-    retry: '重試'
+    retry: '重試',
+    rollback: '版本回復',
+    rollbackSelectVersion: '選擇要回復至的版本（最近 3 個版本）',
+    rollbackConfirm: '回復至 {version}',
+    rollbackWarning: '回復操作將下載所選版本並取代目前程式，完成後需要重新啟動服務',
+    rollingBack: '正在回復...',
+    rollbackComplete: '版本回復完成',
+    rollbackFailed: '版本回復失敗',
+    manualRollbackCommand: '手動回復方式',
+    copyCommand: '複製',
+    copied: '已複製',
+    noRollbackVersions: '暫無可回復的版本',
+    loadVersionsFailed: '無法載入版本清單',
+    rollbackSourceHint: '源碼構建不支援線上回復',
+    deployScript: '指令碼部署',
+    deployDocker: 'Docker',
+    dockerEditCompose: '修改 docker-compose.yml 中的映像版本',
+    dockerRecreate: '重新建立容器'
   },
 
   // Recharge / Subscription Page
   purchase: {
-    title: '充值/訂閱',
-    description: '透過內嵌頁面完成充值/訂閱',
+    title: '增值/訂閱',
+    description: '透過內嵌頁面完成增值/訂閱',
     openInNewTab: '新視窗打開',
     notEnabledTitle: '該功能未開啟',
-    notEnabledDesc: '管理員暫未開啟充值/訂閱入口，請聯絡管理員。',
-    notConfiguredTitle: '充值/訂閱連結未設定',
-    notConfiguredDesc: '管理員已開啟入口，但尚未設定充值/訂閱連結，請聯絡管理員。'
+    notEnabledDesc: '管理員暫未開啟增值/訂閱入口，請聯絡管理員。',
+    notConfiguredTitle: '增值/訂閱連結未設定',
+    notConfiguredDesc: '管理員已開啟入口，但尚未設定增值/訂閱連結，請聯絡管理員。'
   },
 
   // Custom Page (iframe embed)
@@ -95,7 +112,7 @@ export default {
     title: '我的訂閱',
     description: '查看您的訂閱計劃和用量',
     noActiveSubscriptions: '暫無有效訂閱',
-    noActiveSubscriptionsDesc: '您沒有任何有效訂閱。請聯絡管理員獲取訂閱。',
+    noActiveSubscriptionsDesc: '您沒有任何有效訂閱。請聯絡管理員取得訂閱。',
     failedToLoad: '載入訂閱失敗',
     status: {
       active: '有效',
@@ -147,7 +164,7 @@ export default {
       createGroup: {
         title: '➕ 建立新分組',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">現在讓我們建立第一個分組。</p><p style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📝 提示：</b>建議先建立一個測試分組，熟悉流程後再建立正式分組</p><p style="color: #10b981; font-weight: 600;">👉 點擊「建立分組」按鈕</p></div>'
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">現在讓我們建立第一個分組。</p><p style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📝 提示：</b>建議先建立一個測試分組，熟悉流程後再建立正式分組</p><p style="color: #10b981; font-weight: 600;">👉 點擊「建立分組」按鈕</p></div>'
       },
       groupName: {
         title: '✏️ 1. 分組名稱',
@@ -158,7 +175,7 @@ export default {
       groupPlatform: {
         title: '🤖 2. 選擇平台',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇該分組支援的 AI 平台。</p><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 平台說明：</b><ul style="margin: 8px 0 0 16px;"><li><b>Anthropic</b> - Claude 系列模型</li><li><b>OpenAI</b> - GPT 系列模型</li><li><b>Google</b> - Gemini 系列模型</li></ul></div><p style="font-size: 13px; color: #6b7280;">一個分組只能選擇一個平台</p></div>',
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇該分組支援的 AI 平台。</p><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 平台說明：</b><ul style="margin: 8px 0 0 16px;"><li><b>Anthropic</b> - Claude 系列模型</li><li><b>OpenAI</b> - GPT 系列模型</li><li><b>Google</b> - Gemini 系列模型</li></ul></div><p style="font-size: 13px; color: #6b7280;">一個分組只能選擇一個平台</p></div>',
         nextBtn: '下一步'
       },
       groupMultiplier: {
@@ -170,7 +187,7 @@ export default {
       groupExclusive: {
         title: '🔒 4. 專屬分組（可選）',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">控制分組的可見性和存取權限。</p><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔐 權限說明：</b><ul style="margin: 8px 0 0 16px;"><li><b>關閉</b> - 公開分組，所有用戶可見</li><li><b>開啟</b> - 專屬分組，僅指定用戶可見</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>💡 使用場景：</b>VIP 用戶專屬、內部測試、特殊客戶等</p></div>',
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">控制分組的可見性和存取權限。</p><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔐 權限說明：</b><ul style="margin: 8px 0 0 16px;"><li><b>關閉</b> - 公開分組，所有用戶可見</li><li><b>開啟</b> - 專屬分組，僅指定用戶可見</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>💡 使用場景：</b>VIP 用戶專屬、內部測試、特殊客戶等</p></div>',
         nextBtn: '下一步'
       },
       groupSubmit: {
@@ -181,7 +198,7 @@ export default {
       accountManage: {
         title: '🔗 第二步：新增用戶',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;"><b>太棒了！分組已建立成功 🎉</b></p><p style="margin-bottom: 12px;">現在需要新增上游 AI 服務商的用戶，讓分組能夠實際提供服務。</p><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔑 用戶的作用：</b><ul style="margin: 8px 0 0 16px;"><li>連接到上游 AI 服務（Claude、GPT 等）</li><li>一個分組可以包含多個用戶（負載平衡）</li><li>支援 OAuth 和 Session Key 兩種方式</li></ul></div><p style="margin-top: 16px; color: #10b981; font-weight: 600;">👉 點擊左側的「用戶管理」</p></div>'
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;"><b>太棒了！分組已建立成功 🎉</b></p><p style="margin-bottom: 12px;">現在需要新增上游 AI 服務商的用戶，讓分組能夠實際提供服務。</p><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔑 用戶的作用：</b><ul style="margin: 8px 0 0 16px;"><li>連接到上游 AI 服務（Claude、GPT 等）</li><li>一個分組可以包含多個用戶（負載平衡）</li><li>支援 OAuth 和 Session Key 兩種方式</li></ul></div><p style="margin-top: 16px; color: #10b981; font-weight: 600;">👉 點擊左側的「用戶管理」</p></div>'
       },
       createAccount: {
         title: '➕ 新增用戶',
@@ -203,13 +220,13 @@ export default {
       accountType: {
         title: '🔐 3. 授權方式',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇用戶的授權方式。</p><div style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>✅ 推薦：OAuth 方式</b><ul style="margin: 8px 0 0 16px;"><li>無需手動提取金鑰</li><li>更安全，支援自動重新整理</li><li>適用於 Claude Code、ChatGPT OAuth</li></ul></div><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px;"><b>📌 Session Key 方式</b><ul style="margin: 8px 0 0 16px;"><li>需要手動從瀏覽器提取</li><li>可能需要定期更新</li><li>適用於不支援 OAuth 的平台</li></ul></div></div>',
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇用戶的授權方式。</p><div style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>✅ 推薦：OAuth 方式</b><ul style="margin: 8px 0 0 16px;"><li>無需手動提取金鑰</li><li>更安全，支援自動重新整理</li><li>適用於 Claude Code、ChatGPT OAuth</li></ul></div><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px;"><b>📌 Session Key 方式</b><ul style="margin: 8px 0 0 16px;"><li>需要手動從瀏覽器提取</li><li>可能需要定期更新</li><li>適用於不支援 OAuth 的平台</li></ul></div></div>',
         nextBtn: '下一步'
       },
       accountPriority: {
         title: '⚖️ 4. 優先級（可選）',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">設定用戶的呼叫優先級。</p><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📊 優先級規則：</b><ul style="margin: 8px 0 0 16px;"><li>數字越小，優先級越高</li><li>系統優先使用低數值用戶</li><li>相同優先級則隨機選擇</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>💡 使用場景：</b>主用戶設定低數值，備用用戶設定高數值</p></div>',
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">設定用戶的呼叫優先級。</p><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📊 優先級規則：</b><ul style="margin: 8px 0 0 16px;"><li>數字越小，優先級越高</li><li>系統優先使用低數值用戶</li><li>相同優先級則隨機選擇</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>💡 使用場景：</b>主用戶設定低數值，備用用戶設定高數值</p></div>',
         nextBtn: '下一步'
       },
       accountGroups: {
@@ -221,12 +238,12 @@ export default {
       accountSubmit: {
         title: '✅ 儲存用戶',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">確認資訊無誤後，點擊儲存按鈕。</p><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 OAuth 授權流程：</b><ul style="margin: 8px 0 0 16px;"><li>點擊儲存後會跳轉到服務商頁面</li><li>在服務商頁面完成登入授權</li><li>授權成功後自動返回</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>📌 下一步：</b>用戶新增成功後，我們將建立 API 金鑰</p><p style="margin-top: 12px; color: #10b981; font-weight: 600;">👉 點擊「儲存」按鈕</p></div>'
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">確認資訊無誤後，點擊儲存按鈕。</p><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 OAuth 授權流程：</b><ul style="margin: 8px 0 0 16px;"><li>點擊儲存後會跳轉到服務商頁面</li><li>在服務商頁面完成登入授權</li><li>授權成功後自動返回</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>📌 下一步：</b>用戶新增成功後，我們將建立 API 金鑰</p><p style="margin-top: 12px; color: #10b981; font-weight: 600;">👉 點擊「儲存」按鈕</p></div>'
       },
       keyManage: {
         title: '🔑 第三步：生成金鑰',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;"><b>恭喜！用戶設定完成 🎉</b></p><p style="margin-bottom: 12px;">最後一步，生成 API Key 來測試服務是否正常運作。</p><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔑 API Key 的作用：</b><ul style="margin: 8px 0 0 16px;"><li>用於呼叫 AI 服務的憑證</li><li>每個 Key 綁定一個分組</li><li>可以設定配額和有效期</li><li>支援獨立的使用統計</li></ul></div><p style="margin-top: 16px; color: #10b981; font-weight: 600;">👉 點擊左側的「API 金鑰」</p></div>'
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;"><b>恭喜！用戶設定完成 🎉</b></p><p style="margin-bottom: 12px;">最後一步，生成 API Key 來測試服務是否正常運作。</p><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔑 API Key 的作用：</b><ul style="margin: 8px 0 0 16px;"><li>用於呼叫 AI 服務的憑證</li><li>每個 Key 綁定一個分組</li><li>可以設定配額和有效期</li><li>支援獨立的使用統計</li></ul></div><p style="margin-top: 16px; color: #10b981; font-weight: 600;">👉 點擊左側的「API 金鑰」</p></div>'
       },
       createKey: {
         title: '➕ 建立金鑰',
@@ -242,7 +259,7 @@ export default {
       keyGroup: {
         title: '🎯 2. 選擇分組',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇剛才設定好的分組。</p><div style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 分組決定：</b><ul style="margin: 8px 0 0 16px;"><li>該金鑰可以使用哪些用戶</li><li>收費倍數是多少</li><li>是否為專屬金鑰</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>💡 提示：</b>選擇剛才建立的測試分組</p></div>',
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇剛才設定好的分組。</p><div style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 分組決定：</b><ul style="margin: 8px 0 0 16px;"><li>該金鑰可以使用哪些用戶</li><li>收費倍數是多少</li><li>是否為專屬金鑰</li></ul></div><p style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 4px; font-size: 13px;"><b>💡 提示：</b>選擇剛才建立的測試分組</p></div>',
         nextBtn: '下一步'
       },
       keySubmit: {
@@ -263,7 +280,7 @@ export default {
       keyManage: {
         title: '🔑 API 金鑰管理',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">在這裏管理您的所有 API 存取金鑰。</p><p style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px;"><b>📌 什麼是 API 金鑰？</b><br/>API 金鑰是您存取 AI 服務的憑證，就像一把鑰匙，讓您的套用能夠呼叫 AI 能力。</p><p style="margin-top: 12px; color: #10b981; font-weight: 600;">👉 點擊進入金鑰頁面</p></div>'
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">在這裏管理您的所有 API 存取金鑰。</p><p style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px;"><b>📌 什麼是 API 金鑰？</b><br/>API 金鑰是您存取 AI 服務的憑證，就像一把鑰匙，讓您的套用能夠呼叫 AI 能力。</p><p style="margin-top: 12px; color: #10b981; font-weight: 600;">👉 點擊進入金鑰頁面</p></div>'
       },
       createKey: {
         title: '➕ 建立新金鑰',
@@ -279,7 +296,7 @@ export default {
       keyGroup: {
         title: '🎯 選擇分組',
         description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇管理員為您分配的服務分組。</p><p style="padding: 8px 12px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px;"><b>📌 分組說明：</b><br/>不同分組可能有不同的服務質量和收費標準，請根據需要選擇。</p></div>',
+          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">選擇管理員為您分配的服務分組。</p><p style="padding: 8px 12px; background: #f0f7f3; border-left: 3px solid #357f63; border-radius: 4px; font-size: 13px;"><b>📌 分組說明：</b><br/>不同分組可能有不同的服務質量和收費標準，請根據需要選擇。</p></div>',
         nextBtn: '下一步'
       },
       keySubmit: {
@@ -292,8 +309,8 @@ export default {
 
   // Payment System
   payment: {
-    title: '充值/訂閱',
-    amountLabel: '充值金額',
+    title: '增值/訂閱',
+    amountLabel: '增值金額',
     paymentAmount: '支付金額',
     creditedBalance: '到賬餘額',
     quickAmounts: '快捷金額',
@@ -317,7 +334,7 @@ export default {
     status: {
       pending: '待支付',
       paid: '已支付',
-      recharging: '充值中',
+      recharging: '增值中',
       completed: '已完成',
       expired: '已過期',
       cancelled: '已取消',
@@ -355,7 +372,7 @@ export default {
       payAmount: '實付',
       creditedAmount: '到賬金額',
       fee: '手續費',
-      baseAmount: '充值金額',
+      baseAmount: '增值金額',
       includedInPayAmount: '已含在實付金額中',
       status: '狀態',
       paymentMethod: '支付方式',
@@ -372,24 +389,24 @@ export default {
       processing: '支付處理中',
       processingHint: '支付結果仍在確認中，頁面會自動重新整理。',
       failed: '支付失敗',
-      backToRecharge: '返回充值',
+      backToRecharge: '返回增值',
       viewOrders: '查看訂單',
     },
     currentBalance: '目前餘額',
     groupFallback: '分組 #{id}',
-    rechargeAccount: '充值用戶',
+    rechargeAccount: '增值用戶',
     activeSubscription: '目前訂閱',
     noActiveSubscription: '暫無有效訂閱',
-    tabTopUp: '充值',
+    tabTopUp: '增值',
     tabSubscribe: '訂閱',
     noPlans: '暫無可用訂閱套餐',
-    notAvailable: '充值功能暫未開放',
+    notAvailable: '增值功能暫未開放',
     confirmSubscription: '確認訂閱',
     confirmCancel: '確定要取消此訂單嗎？',
     amountTooLow: '最低金額為 {min}',
     amountTooHigh: '最高金額為 {max}',
     amountNoMethod: '該金額沒有可用的支付方式',
-    rechargeRatePreview: '目前倍數：1 CNY = {usd} USD',
+    rechargeRatePreview: '目前倍數：{from} = {to}',
     refundReason: '退款原因',
     refundReasonPlaceholder: '請描述您的退款原因',
     stripeLoadFailed: '支付元件載入失敗，請重新整理頁面重試',
@@ -416,14 +433,14 @@ export default {
       // Structured error codes (reason strings from backend ApplicationError)
       PAYMENT_DISABLED: '支付系統已關閉',
       USER_INACTIVE: '用戶已被停用',
-      BALANCE_PAYMENT_DISABLED: '餘額充值功能已關閉',
+      BALANCE_PAYMENT_DISABLED: '餘額增值功能已關閉',
       INVALID_AMOUNT: '金額無效',
       INVALID_INPUT: '參數有誤',
       PLAN_NOT_AVAILABLE: '套餐不存在或已下架',
       GROUP_NOT_FOUND: '訂閱分組不可用',
       GROUP_TYPE_MISMATCH: '分組類型不是訂閱類型',
       TOO_MANY_PENDING: '待支付訂單過多（最多 {max} 個），請先完成或取消現有訂單',
-      DAILY_LIMIT_EXCEEDED: '今日充值已達上限，剩餘額度 {remaining}',
+      DAILY_LIMIT_EXCEEDED: '今日增值已達上限，剩餘額度 {remaining}',
       PAYMENT_GATEWAY_ERROR: '支付方式不可用',
       NO_AVAILABLE_INSTANCE: '暫無可用的支付通道',
       PAYMENT_PROVIDER_MISCONFIGURED: '支付通道設定錯誤，請聯絡管理員',
@@ -439,7 +456,7 @@ export default {
       INVALID_ORDER_TYPE: '僅餘額訂單可申請退款',
       INVALID_STATUS: '目前訂單狀態不允許此操作',
       BALANCE_NOT_ENOUGH: '退款金額超過餘額',
-      REFUND_AMOUNT_EXCEEDED: '退款金額超過充值金額',
+      REFUND_AMOUNT_EXCEEDED: '退款金額超過增值金額',
       REFUND_FAILED: '退款失敗',
     },
     airwallexPay: 'Airwallex 支付',
@@ -447,9 +464,9 @@ export default {
     stripeSuccessProcessing: '支付成功，正在處理訂單...',
     stripePopup: {
       redirecting: '正在跳轉到支付頁面...',
-      loadingQr: '正在獲取微信支付二維碼...',
+      loadingQr: '正在取得微信支付二維碼...',
       timeout: '等待支付憑證超時，請重試',
-      qrFailed: '未能獲取微信支付二維碼',
+      qrFailed: '未能取得微信支付二維碼',
     },
     subscribeNow: '立即開通',
     renewNow: '續費',
@@ -489,7 +506,7 @@ export default {
       paymentDistribution: '支付方式分佈',
       colUser: '用戶',
       topUsers: '消費排行',
-      noData: '暫無數據',
+      noData: '暫無資料',
       days: '天',
       weeks: '週',
       months: '月',
@@ -500,7 +517,7 @@ export default {
       orderDetail: '訂單詳情',
       orderType: '訂單類型',
       orders: '訂單',
-      balanceOrder: '餘額充值',
+      balanceOrder: '餘額增值',
       subscriptionOrder: '訂閱',
       paidAt: '支付時間',
       completedAt: '完成時間',
@@ -518,9 +535,10 @@ export default {
       queryRefundStatus: '查詢退款狀態',
       refundInfo: '退款資訊',
       refundEnabled: '允許退款',
+      allowUserRefund: '允許用戶申請退款',
       alreadyRefunded: '已退款',
       deductBalance: '扣除餘額',
-      deductBalanceHint: '從用戶餘額中扣回充值金額',
+      deductBalanceHint: '從用戶餘額中扣回增值金額',
       userBalance: '用戶餘額',
       orderAmount: '訂單金額',
       insufficientBalance: '餘額不足，將扣至 $0',
@@ -551,6 +569,9 @@ export default {
       deletePlanConfirm: '確定要刪除此套餐嗎？',
       originalPrice: '原價',
       price: '價格',
+      currency: '幣別標示',
+      currencyPlaceholder: '例如 USD / NZD / CNY',
+      currencyHint: '僅用於價格顯示的 ISO 三字母幣別代碼；留空則不顯示，不影響實際扣款',
       subscriptionCnyPayPreview: 'CNY 通道實扣預覽：{amount}',
       subscriptionCnyPayPreviewWithFee: '（含 {feeRate}% 手續費：{total}）',
       validityDays: '有效期（天）',
@@ -580,7 +601,7 @@ export default {
       supportedTypesHint: '選擇此服務商支援的支付方式',
       rateMultiplier: '費率倍數',
       dashboardTitle: '支付概覽',
-      dashboardDesc: '充值訂單統計與分析',
+      dashboardDesc: '增值訂單統計與分析',
       daySuffix: '天',
       paymentConfigTitle: '支付設定',
       paymentConfigDesc: '管理支付服務商與相關設定',
@@ -610,6 +631,15 @@ export default {
         revoked: '已作廢',
       },
     },
+  },
+
+  carpool: {
+    eyebrow: '共乘',
+    title: '正在連線共乘服務',
+    connecting: '正在建立安全的短時連線。',
+    redirecting: '正在跳轉至共乘服務。',
+    failed: '無法完成共乘服務連線。',
+    invalidLink: '該共乘連結不完整或無效。',
   },
 
 }

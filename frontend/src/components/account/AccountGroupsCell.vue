@@ -25,6 +25,11 @@
 
     <!-- Popover 显示完整列表 -->
     <Teleport to="body">
+      <div
+        v-if="showPopover"
+        class="fixed inset-0 z-[100000020]"
+        @click="showPopover = false"
+      />
       <Transition
         enter-active-class="transition duration-150 ease-out"
         enter-from-class="opacity-0 scale-95"
@@ -36,7 +41,7 @@
         <div
           v-if="showPopover"
           ref="popoverRef"
-          class="fixed z-50 min-w-48 max-w-96 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-dark-600 dark:bg-dark-800"
+          class="fixed z-[100000030] min-w-48 max-w-96 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-dark-600 dark:bg-dark-800"
           :style="popoverStyle"
         >
           <div class="mb-2 flex items-center justify-between">
@@ -67,12 +72,6 @@
       </Transition>
     </Teleport>
 
-    <!-- 点击外部关闭 popover -->
-    <div
-      v-if="showPopover"
-      class="fixed inset-0 z-40"
-      @click="showPopover = false"
-    />
   </div>
   <span v-else class="text-sm text-gray-400 dark:text-dark-500">-</span>
 </template>
@@ -97,6 +96,7 @@ const { t } = useI18n()
 const moreButtonRef = ref<HTMLElement | null>(null)
 const popoverRef = ref<HTMLElement | null>(null)
 const showPopover = ref(false)
+const viewportPositionVersion = ref(0)
 
 // 显示的分组（最多显示 maxDisplay 个）
 const displayGroups = computed(() => {
@@ -117,6 +117,7 @@ const hiddenCount = computed(() => {
 
 // Popover 位置样式
 const popoverStyle = computed(() => {
+  viewportPositionVersion.value
   if (!moreButtonRef.value) return {}
   const rect = moreButtonRef.value.getBoundingClientRect()
   const viewportHeight = window.innerHeight
@@ -148,11 +149,19 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
+const updatePopoverPosition = () => {
+  if (showPopover.value) viewportPositionVersion.value += 1
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('scroll', updatePopoverPosition, { capture: true, passive: true })
+  window.addEventListener('resize', updatePopoverPosition)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('scroll', updatePopoverPosition, { capture: true })
+  window.removeEventListener('resize', updatePopoverPosition)
 })
 </script>

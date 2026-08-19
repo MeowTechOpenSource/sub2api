@@ -13,6 +13,34 @@ export default {
         backup: 'Backup',
         payment: 'Payment',
       },
+      agreement: {
+        title: 'Login agreement',
+        description: 'Control whether the login page requires users to accept Markdown policy documents first.',
+        enabled: 'Enabled',
+        disabled: 'Disabled',
+        displayMode: 'Display mode',
+        modal: 'Modal',
+        checkbox: 'Checkbox',
+        checkboxHint: 'The checkbox appears below the login button and gates all login actions.',
+        modalHint: 'The modal opens on the login page and gates all login actions until accepted.',
+        updatedAt: 'Updated date',
+        updatedAtHint: 'Changing the date or document content requires fresh consent.',
+        documentsTitle: 'Agreement documents',
+        documentsDescription: 'Document titles are customizable and content is saved as Markdown.',
+        addDocument: 'Add document',
+        untitledDocument: 'Untitled document',
+        documentTitle: 'Document title',
+        documentTitlePlaceholder: 'Example: Terms of Service',
+        routeSlug: 'Route slug',
+        markdownContent: 'Markdown content',
+        markdownPlaceholder: 'Write the final Markdown content here.',
+        defaults: {
+          terms: 'Terms of Service',
+          usagePolicy: 'Usage Policy',
+          supportedRegions: 'Supported Countries and Regions',
+          serviceSpecificTerms: 'Service-Specific Terms',
+        },
+      },
       features: {
         channelMonitor: {
           title: 'Channel Monitor',
@@ -33,10 +61,10 @@ export default {
             'When on, the user Channel Monitor page and user APIs omit RPM and TPM so fleet volume cannot be reverse-estimated from rates × window. Admins still see full metrics. Error rates, latency, and cache rates remain visible.',
         },
         availableChannels: {
-          title: 'Available Channels',
-          description: 'Show logged-in users an aggregate view of the channels, models and pricing they can access. Disabled by default.',
+          title: 'Pricing Page',
+          description: 'Show logged-in users model pricing by access group, including original and adjusted prices. Disabled by default.',
           configureLink: 'Configure model pricing in Channel Management > Channel Pricing',
-          enabled: 'Enable Available Channels',
+          enabled: 'Enable Pricing Page',
           enabledHint: 'When off, the sidebar entry is hidden and the endpoint returns an empty list.',
         },
         modelPlaza: {
@@ -160,8 +188,8 @@ export default {
         stepUp: 'Step-up 2FA for Sensitive Operations',
         stepUpHint: 'When enabled, sensitive operations (account/proxy export, backup creation and download, S3 config changes, promoting admins) require a recent TOTP verification (valid for 15 minutes). Your own account must have 2FA enabled before turning this on; turning it off also requires step-up verification.',
         stepUpEnableRequiresTotp: 'Enable 2FA (TOTP) for your own account in Profile before turning on step-up verification.',
-        sessionBinding: 'Session IP/UA Binding',
-        sessionBindingHint: 'Bind login sessions to the client IP and User-Agent. Any change immediately invalidates the session and forces re-login, raising the bar for stolen-credential reuse.',
+        sessionBinding: 'Session Device Binding',
+        sessionBindingHint: 'Bind login sessions to the browser User-Agent. Network and IP changes do not sign users out.',
         auditRetention: 'Audit Log Retention (days)',
         auditRetentionHint: 'Audit logs older than this are cleaned up automatically. Set to 0 to keep them forever (manual clear only).'
       },
@@ -250,7 +278,7 @@ export default {
       apiKeyAcl: {
         title: 'API Key IP Access Control',
         description:
-          'Choose which client IP is used by API Key allowlists/denylists, admin audit logs, and session IP/UA binding',
+          'Choose which client IP is used by API Key allowlists/denylists and admin audit logs',
         trustForwardedIp: 'Trust forwarded client IP',
         trustForwardedIpHint:
           'Enabled by default for upgrade compatibility. When enabled, raw CF-Connecting-IP, X-Real-IP, or X-Forwarded-For values take over server.trusted_proxies for client-IP resolution. Disable it to enforce the Gin trusted-proxy chain configured by server.trusted_proxies. Only enable takeover mode when the origin cannot be reached directly. Changing this switch changes existing session IP fingerprints.',
@@ -593,6 +621,12 @@ export default {
         siteSubtitle: 'Site Subtitle',
         siteSubtitlePlaceholder: 'Subscription to API Conversion Platform',
         siteSubtitleHint: 'Displayed on login and register pages',
+        currencySymbol: 'Currency Symbol',
+        currencySymbolPlaceholder: 'e.g. $, MAI$',
+        currencySymbolHint: 'Prefix shown before balances and prices. Leave empty to display the currency name after the amount.',
+        currencyName: 'Currency Name',
+        currencyNamePlaceholder: 'e.g. USD, credits',
+        currencyNameHint: 'Human-readable unit used in labels and when no symbol is configured.',
         apiBaseUrl: 'API Base URL',
         apiBaseUrlPlaceholder: 'https://api.example.com',
         apiBaseUrlHint:

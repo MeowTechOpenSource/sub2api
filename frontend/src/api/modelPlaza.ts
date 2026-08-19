@@ -6,6 +6,7 @@
 
 import { apiClient } from './client'
 import type { UserSupportedModelPricing } from './channels'
+import type { HappyHourEvent } from '@/types'
 
 /** LiteLLM 官方参考价（USD per token，字段缺失 = 官方数据未覆盖）。 */
 export interface PlazaOfficialPricing {
@@ -39,6 +40,13 @@ export interface ModelPlazaGroup {
   peak_start: string
   peak_end: string
   peak_rate_multiplier: number
+  peak_rate_active?: boolean
+  happy_hour_events?: HappyHourEvent[]
+  active_happy_hour?: HappyHourEvent
+  five_hour_quota_remaining?: number
+  five_hour_quota_total?: number
+  seven_day_quota_remaining?: number
+  seven_day_quota_total?: number
   is_exclusive: boolean
   /** 生图独立倍率：true 时图片计费模型的实付倍率取 image_rate_multiplier，不取分组/专属倍率。 */
   image_rate_independent: boolean

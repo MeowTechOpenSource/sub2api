@@ -32,7 +32,7 @@ export default {
     all: '全部',
     none: '無',
     selectAll: '全選',
-    noData: '暫無數據',
+    noData: '暫無資料',
     expand: '展開',
     collapse: '收起',
     success: '成功',
@@ -63,6 +63,12 @@ export default {
     optional: '可選',
     selectOption: '請選擇',
     searchPlaceholder: '搜尋...',
+    accessibility: {
+      primaryNavigation: '主導覽',
+      userMenu: '用戶選單',
+      toggleNavigation: '展開或收起導覽',
+      languageMenu: '選擇語言'
+    },
     noOptionsFound: '無匹配選項',
     noGroupsAvailable: '無可用分組',
     unknownError: '發生未知錯誤',
@@ -148,10 +154,15 @@ export default {
   // Navigation
   nav: {
     dashboard: '儀表板',
+    chat: '對話',
+    workspace: '工作區',
+    models: '模型',
+    billing: '帳單與訂閱',
     announcements: '公告',
     apiKeys: 'API 金鑰',
     batchImage: '批量生圖',
     usage: '使用記錄',
+    auditLogs: '操作日誌',
     redeem: '兌換',
     affiliate: '邀請回贈',
     affiliateManagement: '邀請回贈',
@@ -162,7 +173,7 @@ export default {
     users: '用戶管理',
     groups: '分組管理',
     channels: '渠道管理',
-    availableChannels: '可用渠道',
+    availableChannels: '定價',
     subscriptions: '訂閱管理',
     accounts: '帳號管理',
     proxies: 'IP管理',
@@ -178,7 +189,7 @@ export default {
     logout: '登出',
     github: 'GitHub',
     mySubscriptions: '我的訂閱',
-    buySubscription: '充值/訂閱',
+    buySubscription: '增值/訂閱',
     docs: '文件',
     myOrders: '我的訂單',
     orderManagement: '訂單管理',
@@ -194,6 +205,16 @@ export default {
 
   // Auth
   auth: {
+    secureAccess: '安全 API 存取',
+    gatewayStatus: '閘道狀態',
+    operational: '運行正常',
+    authentication: '身分驗證',
+    encrypted: '已加密',
+    smartRouting: '智慧路由',
+    active: '已啟用',
+    usageMetering: '用量計量',
+    realTime: '即時',
+    protectedSession: '受保護的工作階段',
     welcomeBack: '歡迎回來',
     signInToAccount: '登入您的帳戶以繼續',
     signIn: '登入',
@@ -410,6 +431,15 @@ export default {
     invalidResetLinkHint: '此密碼重設連結無效或已過期。請重新請求一個新連結。',
     requestNewResetLink: '請求新的重設連結',
     invalidOrExpiredToken: '密碼重設連結無效或已過期。請重新請求一個新連結。'
+  },
+
+  // Step-up（敏感操作二次驗證）
+  stepUp: {
+    title: '需要二次驗證',
+    hint: '請輸入驗證器應用程式中的 6 位驗證碼，以繼續此敏感操作。',
+    verifyFailed: '驗證失敗，請重試',
+    notEnabled: '此操作需要二次驗證，請先在個人資料中啟用 TOTP。',
+    adminApiKeyForbidden: '管理員 API 金鑰無法執行此操作，請使用已通過二次驗證的管理員工作階段。'
   },
 
   // Dashboard

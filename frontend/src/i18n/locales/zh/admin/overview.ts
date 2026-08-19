@@ -586,6 +586,9 @@ export default {
       adjustmentAmount: '调整金额',
       adjustmentAmountHint: '正数增加，负数减少',
       currentBalance: '当前余额',
+      balanceExpiry: '余额过期时间',
+      balanceExpiryHint: '可选。此笔增值将在所选时间到达时移除。',
+      balanceExpiryFuture: '请选择未来的过期时间。',
       currentConcurrency: '当前并发数',
       saving: '保存中...',
       noUsers: '暂无用户',
@@ -1026,11 +1029,19 @@ export default {
         finalPricePreview: '应用当前倍率后的单次价格：{price}'
       },
       peakRate: {
-        enable: '启用高峰倍率',
-        peakStart: '高峰开始',
-        peakEnd: '高峰结束',
-        peakMultiplier: '高峰倍率',
-        multiplierHint: '作用于 token 计费倍率；token 计费的图片 token 同样适用，0 表示高峰 token 请求按 0 倍计费'
+        title: '欢乐时光',
+        description: '为此分组设置每日促销费率，时段以服务器时区为准。',
+        enable: '启用欢乐时光',
+        addEvent: '添加活动',
+        removeEvent: '删除活动',
+        enableEvent: '启用活动',
+        eventName: '活动名称',
+        defaultEventName: '欢乐时光',
+        noEvents: '暂无欢乐时光活动，添加活动后可设置促销费率。',
+        peakStart: '开始时间',
+        peakEnd: '结束时间',
+        peakMultiplier: '活动倍率',
+        multiplierHint: '在每日服务器时区的指定时段应用于文字、图片、视频及按次计费；0 表示免费。'
       },
       profitControl: {
         enable: '启用利润控制',
@@ -1171,14 +1182,6 @@ export default {
         selectAccounts: '选择账号',
         noAccounts: '此分组暂无账号',
         loadingAccounts: '加载账号中...',
-      claudeMaxSimulation: {
-        title: 'Claude Max 用量模拟',
-        tooltip:
-          '启用后，对于没有上游缓存写入用量的 Claude 模型，系统会确定性地将 token 映射为少量输入加 1h 缓存创建，同时保持总 token 不变。',
-        enabled: '已启用（模拟 1h 缓存）',
-        disabled: '已禁用',
-        hint: '仅调整用量计费日志中的 token 类别。不会持久化每个请求的映射状态。'
-      },
         removeRule: '删除规则',
         noRules: '暂无路由规则',
         noRulesHint: '添加路由规则以将特定模型请求优先路由到指定账号',
@@ -1190,6 +1193,14 @@ export default {
         tooltip: '启用后，当请求包含 MCP 工具时，会在 system prompt 中注入 XML 格式调用协议提示词。关闭此选项可避免对某些客户端造成干扰。',
         enabled: '已启用',
         disabled: '已禁用'
+      },
+      claudeMaxSimulation: {
+        title: 'Claude Max 用量模拟',
+        tooltip:
+          '启用后，对于没有上游缓存写入用量的 Claude 模型，系统会确定性地将 token 映射为少量输入加 1h 缓存创建，同时保持总 token 不变。',
+        enabled: '已启用（模拟 1h 缓存）',
+        disabled: '已禁用',
+        hint: '仅调整用量计费日志中的 token 类别。不会持久化每个请求的映射状态。'
       },
       supportedScopes: {
         title: '支持的模型系列',

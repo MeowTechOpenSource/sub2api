@@ -324,6 +324,8 @@ export default {
       selectGroupPlaceholder: 'Choose a subscription group',
       validityDays: 'Validity Days',
       codeExpiry: 'Code Expiry',
+      balanceExpiry: 'Balance Expiry',
+      balanceExpiryHint: 'The code must be redeemed before this time. Any unspent balance from this code also expires then.',
       neverExpires: 'Never expires',
       expiryPresetDays: '{days} days',
       customExpiry: 'Custom',

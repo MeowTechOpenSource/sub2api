@@ -2,8 +2,16 @@
   <AppLayout>
     <div
       data-testid="profile-shell"
-      class="mx-auto max-w-[950px] space-y-6"
+      class="profile-page mx-auto max-w-6xl"
     >
+      <header class="screen-header">
+        <div class="screen-header__copy">
+          <p class="screen-header__eyebrow">{{ t('nav.profile') }}</p>
+          <h1 class="screen-header__title">{{ t('profile.title') }}</h1>
+          <p class="screen-header__description">{{ t('profile.description') }}</p>
+        </div>
+      </header>
+
       <ProfileInfoCard
         :user="user"
         :linuxdo-enabled="linuxdoOAuthEnabled"
@@ -15,36 +23,31 @@
         :wechat-mp-enabled="wechatOAuthMPEnabled"
       />
 
-      <div
-        v-if="contactInfo"
-        class="card border-primary-200 bg-primary-50 p-6 dark:bg-primary-900/20"
-      >
-        <div class="flex items-center gap-4">
-          <div class="rounded-xl bg-primary-100 p-3 text-primary-600">
-            <Icon name="chat" size="lg" />
+      <div class="profile-security-grid">
+        <main class="space-y-5">
+          <ProfilePasswordForm />
+          <ProfileTotpCard />
+          <ProfilePasskeyCard :enabled="passkeyEnabled" />
+        </main>
+
+        <aside class="space-y-5">
+          <ProfileBalanceNotifyCard
+            v-if="user && balanceLowNotifyEnabled"
+            :enabled="user.balance_notify_enabled ?? true"
+            :threshold="user.balance_notify_threshold"
+            :extra-emails="user.balance_notify_extra_emails ?? []"
+            :system-default-threshold="systemDefaultThreshold"
+            :user-email="user.email"
+          />
+          <div v-if="contactInfo" class="profile-support-panel">
+            <div class="profile-support-panel__icon"><Icon name="chat" size="md" /></div>
+            <div class="min-w-0">
+              <h3>{{ t('common.contactSupport') }}</h3>
+              <p>{{ contactInfo }}</p>
+            </div>
           </div>
-          <div>
-            <h3 class="font-semibold text-primary-800 dark:text-primary-200">
-              {{ t('common.contactSupport') }}
-            </h3>
-            <p class="text-sm font-medium">{{ contactInfo }}</p>
-          </div>
-        </div>
+        </aside>
       </div>
-
-      <ProfilePasswordForm />
-
-      <ProfileBalanceNotifyCard
-        v-if="user && balanceLowNotifyEnabled"
-        :enabled="user.balance_notify_enabled ?? true"
-        :threshold="user.balance_notify_threshold"
-        :extra-emails="user.balance_notify_extra_emails ?? []"
-        :system-default-threshold="systemDefaultThreshold"
-        :user-email="user.email"
-      />
-
-      <ProfileTotpCard />
-      <ProfilePasskeyCard :enabled="passkeyEnabled" />
     </div>
   </AppLayout>
 </template>
@@ -113,3 +116,20 @@ onMounted(async () => {
   await Promise.all([profileRefresh, settingsLoad])
 })
 </script>
+
+<style scoped>
+.profile-page { display:flex; flex-direction:column; gap:20px; padding-bottom:28px; }
+.profile-security-grid { display:grid; align-items:stretch; gap:20px; grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr); }
+.profile-security-grid > main,.profile-security-grid > aside { min-width:0; }
+.profile-security-grid :deep(.card) { overflow:hidden; border:1px solid var(--line); border-radius:13px; background:color-mix(in srgb,var(--surface) 90%,transparent); box-shadow:var(--shadow-panel); backdrop-filter:blur(14px); }
+.profile-security-grid :deep(.card > .border-b) { padding:17px 20px; border-color:var(--line); background:color-mix(in srgb,var(--surface-muted) 46%,transparent); }
+.profile-security-grid :deep(.card > .border-b h2) { font-size:14px; font-weight:740; }
+.profile-security-grid :deep(.card > .border-b p) { margin-top:4px; font-size:10px; line-height:1.5; }
+.profile-security-grid :deep(.card > .px-6) { padding:20px; }
+.profile-support-panel { display:flex; align-items:flex-start; gap:12px; padding:20px; border:1px solid var(--line); border-radius:12px; background:color-mix(in srgb,var(--surface) 88%,transparent); box-shadow:var(--shadow-panel); backdrop-filter:blur(14px); }
+.profile-support-panel__icon { width:40px; height:40px; flex:0 0 auto; display:grid; place-items:center; border-radius:9px; background:#f0f7f3; color:#276b53; }
+.profile-support-panel h3 { margin:0; font-size:13px; font-weight:750; }.profile-support-panel p { margin:5px 0 0; overflow-wrap:anywhere; color:var(--ink-muted); font-size:11px; line-height:1.55; }
+.dark .profile-support-panel__icon { background:rgba(39,107,83,.14); color:#8bc3a7; }
+@media(max-width:1050px){.profile-security-grid{grid-template-columns:1fr}}
+@media(max-width:640px){.profile-page{gap:16px;padding-bottom:20px}.profile-security-grid{gap:16px}.profile-security-grid main,.profile-security-grid aside{gap:16px}}
+</style>

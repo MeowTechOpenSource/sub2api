@@ -136,6 +136,7 @@ type RedeemService struct {
 	redeemRepo           RedeemCodeRepository
 	userRepo             UserRepository
 	redeemUserRepo       RedeemUserAdjustmentRepository
+	redeemCreditRepo     RedeemBalanceCreditRepository
 	subscriptionService  *SubscriptionService
 	cache                RedeemCache
 	billingCacheService  *BillingCacheService
@@ -156,10 +157,12 @@ func NewRedeemService(
 	affiliateService *AffiliateService,
 ) *RedeemService {
 	redeemUserRepo, _ := userRepo.(RedeemUserAdjustmentRepository)
+	redeemCreditRepo, _ := userRepo.(RedeemBalanceCreditRepository)
 	return &RedeemService{
 		redeemRepo:           redeemRepo,
 		userRepo:             userRepo,
 		redeemUserRepo:       redeemUserRepo,
+		redeemCreditRepo:     redeemCreditRepo,
 		subscriptionService:  subscriptionService,
 		cache:                cache,
 		billingCacheService:  billingCacheService,
@@ -464,8 +467,15 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 			if err := s.redeemUserRepo.ApplyRedeemBalanceAdjustment(txCtx, userID, amount); err != nil {
 				return nil, fmt.Errorf("update user balance: %w", err)
 			}
-		} else if err := s.userRepo.UpdateBalance(txCtx, userID, amount); err != nil {
-			return nil, fmt.Errorf("update user balance: %w", err)
+		} else {
+			if redeemCode.ExpiresAt != nil && s.redeemCreditRepo != nil {
+				if err := s.redeemCreditRepo.GrantRedeemBalanceCredit(txCtx, userID, redeemCode.ID, amount, *redeemCode.ExpiresAt); err != nil {
+					return nil, fmt.Errorf("record expiring redeem balance: %w", err)
+				}
+			}
+			if err := s.userRepo.UpdateBalance(txCtx, userID, amount); err != nil {
+				return nil, fmt.Errorf("update user balance: %w", err)
+			}
 		}
 
 	case RedeemTypeConcurrency:

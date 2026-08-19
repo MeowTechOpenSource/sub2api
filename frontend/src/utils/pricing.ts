@@ -1,5 +1,5 @@
 /**
- * formatScaled formats a per-token (or per-request) USD price scaled by `scale`.
+ * formatScaled formats a per-token (or per-request) display price scaled by `scale`.
  *
  *   formatScaled(0.000003, 1_000_000)    → "$3"      // per 1M tokens
  *   formatScaled(0.5,        1)          → "$0.5"    // per request
@@ -10,6 +10,8 @@
  * Uses toPrecision(10) then strips trailing zeros to avoid IEEE 754 display noise.
  * `minFractionDigits` pads the result back up to a minimum number of decimals.
  */
+import { decorateDisplayCurrency } from '@/utils/currency'
+
 export function formatScaled(value: number | null, scale: number, minFractionDigits = 0): string {
   if (value == null) return '-'
   let s = (value * scale).toPrecision(10).replace(/\.?0+$/, '')
@@ -20,5 +22,5 @@ export function formatScaled(value: number | null, scale: number, minFractionDig
       s = (dot === -1 ? `${s}.` : s) + '0'.repeat(minFractionDigits - digits)
     }
   }
-  return `$${s}`
+  return decorateDisplayCurrency(s)
 }

@@ -204,6 +204,17 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/carpool-connect',
+    name: 'CarpoolConnect',
+    component: () => import('@/views/user/CarpoolConnectView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Carpool Connect',
+      titleKey: 'carpool.title'
+    }
+  },
+  {
     path: '/keys',
     name: 'Keys',
     component: () => import('@/views/user/KeysView.vue'),
@@ -213,6 +224,30 @@ const routes: RouteRecordRaw[] = [
       title: 'API Keys',
       titleKey: 'keys.title',
       descriptionKey: 'keys.description'
+    }
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: () => import('@/views/user/ChatView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Chat',
+      titleKey: 'chat.title',
+      descriptionKey: 'chat.description'
+    }
+  },
+  {
+    path: '/image-studio',
+    name: 'ImageStudio',
+    component: () => import('@/views/user/ImageStudioView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Image Studio',
+      titleKey: 'chat.imageStudio',
+      descriptionKey: 'chat.imageStudioDescription'
     }
   },
   {
@@ -266,15 +301,11 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/available-channels',
-    name: 'UserAvailableChannels',
-    component: () => import('@/views/user/AvailableChannelsView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: false,
-      title: 'Available Channels',
-      titleKey: 'availableChannels.title',
-      descriptionKey: 'availableChannels.description'
-    }
+    redirect: '/model-plaza'
+  },
+  {
+    path: '/pricing',
+    redirect: '/model-plaza'
   },
   {
     path: '/profile',

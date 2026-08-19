@@ -1,6 +1,20 @@
 <template>
   <AppLayout>
     <div class="space-y-6">
+      <header class="screen-header">
+        <div class="screen-header__copy">
+          <p class="screen-header__eyebrow">{{ t('nav.mySubscriptions') }}</p>
+          <h1 class="screen-header__title">{{ t('userSubscriptions.title') }}</h1>
+          <p class="screen-header__description">{{ t('userSubscriptions.description') }}</p>
+        </div>
+        <div class="screen-header__actions">
+          <button type="button" class="btn btn-primary" @click="router.push('/purchase')">
+            <Icon name="creditCard" size="sm" />
+            {{ t('nav.buySubscription') }}
+          </button>
+        </div>
+      </header>
+
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center py-12">
         <div
@@ -9,7 +23,7 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="subscriptions.length === 0" class="card p-12 text-center">
+      <div v-else-if="subscriptions.length === 0" class="screen-panel px-6 py-14 text-center">
         <div
           class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700"
         >
@@ -21,6 +35,9 @@
         <p class="text-gray-500 dark:text-dark-400">
           {{ t('userSubscriptions.noActiveSubscriptionsDesc') }}
         </p>
+        <button type="button" class="btn btn-primary mt-6" @click="router.push('/purchase')">
+          {{ t('nav.buySubscription') }}
+        </button>
       </div>
 
       <!-- Subscriptions Grid -->
@@ -28,15 +45,16 @@
         <div
           v-for="subscription in subscriptions"
           :key="subscription.id"
-          class="overflow-hidden rounded-2xl border bg-white dark:bg-dark-800"
-          :class="platformBorderClass(subscription.group?.platform || '')"
+          class="screen-panel group overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:border-primary-200"
         >
           <!-- Header -->
           <div
             class="flex items-center justify-between border-b border-gray-100 p-4 dark:border-dark-700"
           >
             <div class="flex items-center gap-3">
-              <div :class="['h-1.5 w-1.5 shrink-0 rounded-full', platformAccentDotClass(subscription.group?.platform || '')]" />
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-300">
+                <Icon name="database" size="sm" />
+              </div>
               <div>
                 <div class="flex items-center gap-2">
                   <h3 class="font-semibold text-gray-900 dark:text-white">
@@ -107,8 +125,8 @@
                   {{ t('userSubscriptions.daily') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.daily_usage_usd || 0).toFixed(2) }} / ${{
-                    subscription.group.daily_limit_usd.toFixed(2)
+                  {{ formatCurrency(subscription.daily_usage_usd || 0) }} / {{
+                    formatCurrency(subscription.group.daily_limit_usd)
                   }}
                 </span>
               </div>
@@ -144,8 +162,8 @@
                   {{ t('userSubscriptions.weekly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / ${{
-                    subscription.group.weekly_limit_usd.toFixed(2)
+                  {{ formatCurrency(subscription.weekly_usage_usd || 0) }} / {{
+                    formatCurrency(subscription.group.weekly_limit_usd)
                   }}
                 </span>
               </div>
@@ -185,8 +203,8 @@
                   {{ t('userSubscriptions.monthly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / ${{
-                    subscription.group.monthly_limit_usd.toFixed(2)
+                  {{ formatCurrency(subscription.monthly_usage_usd || 0) }} / {{
+                    formatCurrency(subscription.group.monthly_limit_usd)
                   }}
                 </span>
               </div>
@@ -226,7 +244,7 @@
                 !subscription.group?.weekly_limit_usd &&
                 !subscription.group?.monthly_limit_usd
               "
-              class="flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 py-6 dark:from-emerald-900/20 dark:to-teal-900/20"
+              class="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50/70 py-6 dark:border-emerald-900/50 dark:bg-emerald-950/20"
             >
               <div class="flex items-center gap-3">
                 <span class="text-4xl text-emerald-600 dark:text-emerald-400">∞</span>
@@ -256,25 +274,10 @@ import subscriptionsAPI from '@/api/subscriptions'
 import type { UserSubscription } from '@/types'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
-import { formatDateTimeToMinute } from '@/utils/format'
+import { formatCurrency, formatDateTimeToMinute } from '@/utils/format'
 import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
-import { platformBorderClass, platformBadgeClass, platformButtonClass, platformLabel } from '@/utils/platformColors'
-import {
-  getExpirationDateRelation,
-  getRemainingDurationParts,
-  isOneTimeDailyQuota,
-  type RemainingDurationParts
-} from '@/utils/subscriptionQuota'
-
-function platformAccentDotClass(p: string): string {
-  switch (p) {
-    case 'anthropic': return 'bg-orange-500'
-    case 'openai': return 'bg-emerald-500'
-    case 'antigravity': return 'bg-purple-500'
-    case 'gemini': return 'bg-blue-500'
-    default: return 'bg-gray-400'
-  }
-}
+import { platformBadgeClass, platformButtonClass, platformLabel } from '@/utils/platformColors'
+import { getRemainingDurationParts, isOneTimeDailyQuota, type RemainingDurationParts } from '@/utils/subscriptionQuota'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -322,20 +325,17 @@ function formatExpirationDate(expiresAt: string): string {
   const expires = new Date(expiresAt)
   const diff = expires.getTime() - now.getTime()
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
-  const relation = getExpirationDateRelation(expires, now)
 
-  if (relation === null) return ''
-
-  if (relation === 'expired') {
+  if (days < 0) {
     return t('userSubscriptions.status.expired')
   }
 
   const dateStr = formatDateTimeToMinute(expires)
 
-  if (relation === 'today') {
+  if (days === 0) {
     return `${dateStr} (${t('common.today')})`
   }
-  if (relation === 'tomorrow') {
+  if (days === 1) {
     return `${dateStr} (${t('common.tomorrow')})`
   }
 
@@ -348,7 +348,7 @@ function getExpirationClass(expiresAt: string): string {
   const diff = expires.getTime() - now.getTime()
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
 
-  if (diff <= 0) return 'text-red-600 dark:text-red-400 font-medium'
+  if (days <= 0) return 'text-red-600 dark:text-red-400 font-medium'
   if (days <= 3) return 'text-red-600 dark:text-red-400'
   if (days <= 7) return 'text-orange-600 dark:text-orange-400'
   return 'text-gray-700 dark:text-gray-300'

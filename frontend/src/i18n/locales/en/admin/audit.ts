@@ -47,6 +47,36 @@ export default {
       totpHint: 'Clearing audit logs requires a fresh TOTP verification.',
       success: 'Cleared {count} audit log(s)',
       failed: 'Failed to clear audit logs'
+    },
+    values: {
+      actionFormat: '{verb} {resource}',
+      unknownAction: 'Unknown action',
+      authMethods: {
+        jwt: 'Signed-in session',
+        adminApiKey: 'Admin API key'
+      },
+      roles: {
+        admin: 'Administrator',
+        user: 'User',
+        system: 'System',
+        unknown: 'Unknown role'
+      },
+      verbs: {
+        create: 'Create', update: 'Update', delete: 'Delete', read: 'View', import: 'Import', export: 'Export',
+        clear: 'Clear', restore: 'Restore', download: 'Download', regenerate: 'Regenerate', verify: 'Verify',
+        login: 'Sign in', register: 'Register', refresh: 'Refresh'
+      },
+      resources: {
+        system: 'system', auth: 'authentication', accounts: 'accounts', backups: 'backups', settings: 'settings',
+        users: 'users', groups: 'groups', proxies: 'proxies', redeem_codes: 'redeem codes', audit_log: 'audit logs',
+        admin_api_key: 'admin API key', api_keys: 'API keys', s3_config: 'S3 configuration',
+        data_management: 'data management', totp: 'two-factor authentication', session_binding: 'session binding'
+      },
+      specialActions: {
+        login: 'Sign in', login2fa: 'Complete two-factor sign-in', register: 'Register account',
+        tokenRefresh: 'Refresh signed-in session', sessionBindingMismatch: 'Session security mismatch',
+        stepUpVerify: 'Verify sensitive operation', auditLogClear: 'Clear all audit logs'
+      }
     }
   }
 }

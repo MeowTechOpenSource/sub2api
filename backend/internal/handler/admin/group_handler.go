@@ -120,6 +120,7 @@ type CreateGroupRequest struct {
 	PeakStart                       string                        `json:"peak_start"`
 	PeakEnd                         string                        `json:"peak_end"`
 	PeakRateMultiplier              *float64                      `json:"peak_rate_multiplier"`
+	HappyHourEvents                 []service.HappyHourEvent      `json:"happy_hour_events"`
 	ProfitControlEnabled            bool                          `json:"profit_control_enabled"`
 	ProfitMinMargin                 *float64                      `json:"profit_min_margin"`
 	ProfitSafetyBuffer              *float64                      `json:"profit_safety_buffer"`
@@ -189,6 +190,7 @@ type UpdateGroupRequest struct {
 	PeakStart                       *string                       `json:"peak_start"`
 	PeakEnd                         *string                       `json:"peak_end"`
 	PeakRateMultiplier              *float64                      `json:"peak_rate_multiplier"`
+	HappyHourEvents                 *[]service.HappyHourEvent     `json:"happy_hour_events"`
 	ProfitControlEnabled            *bool                         `json:"profit_control_enabled"`
 	ProfitMinMargin                 *float64                      `json:"profit_min_margin"`
 	ProfitSafetyBuffer              *float64                      `json:"profit_safety_buffer"`
@@ -489,6 +491,10 @@ func (h *GroupHandler) Create(c *gin.Context) {
 		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
+	if err := applyCreateHappyHourEvents(&req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
 
 	if err := service.ValidatePeakRateConfig(req.SubscriptionType, req.PeakRateEnabled, req.PeakStart, req.PeakEnd, float64ValueOrDefault(req.PeakRateMultiplier, 1.0)); err != nil {
 		response.BadRequest(c, err.Error())
@@ -629,6 +635,10 @@ func (h *GroupHandler) Update(c *gin.Context) {
 		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
+	if err := applyUpdateHappyHourEvents(&req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
 
 	group, err := h.adminService.UpdateGroup(c.Request.Context(), groupID, &service.UpdateGroupInput{
 		Name:                            req.Name,
@@ -695,6 +705,61 @@ func (h *GroupHandler) Update(c *gin.Context) {
 	}
 
 	response.Success(c, dto.GroupFromServiceAdmin(group))
+}
+
+func applyCreateHappyHourEvents(req *CreateGroupRequest) error {
+	if len(req.HappyHourEvents) == 0 {
+		return nil
+	}
+	if err := service.ValidateHappyHourEvents(req.HappyHourEvents); err != nil {
+		return err
+	}
+	event := preferredHappyHourEvent(req.HappyHourEvents)
+	req.PeakRateEnabled = event.Enabled
+	req.PeakStart = event.Start
+	req.PeakEnd = event.End
+	req.PeakRateMultiplier = &event.RateMultiplier
+	return nil
+}
+
+func applyUpdateHappyHourEvents(req *UpdateGroupRequest) error {
+	if req.HappyHourEvents == nil {
+		return nil
+	}
+	events := *req.HappyHourEvents
+	if err := service.ValidateHappyHourEvents(events); err != nil {
+		return err
+	}
+	if len(events) == 0 {
+		disabled := false
+		empty := ""
+		defaultMultiplier := 1.0
+		req.PeakRateEnabled = &disabled
+		req.PeakStart = &empty
+		req.PeakEnd = &empty
+		req.PeakRateMultiplier = &defaultMultiplier
+		return nil
+	}
+
+	event := preferredHappyHourEvent(events)
+	enabled := event.Enabled
+	start := event.Start
+	end := event.End
+	multiplier := event.RateMultiplier
+	req.PeakRateEnabled = &enabled
+	req.PeakStart = &start
+	req.PeakEnd = &end
+	req.PeakRateMultiplier = &multiplier
+	return nil
+}
+
+func preferredHappyHourEvent(events []service.HappyHourEvent) service.HappyHourEvent {
+	for _, event := range events {
+		if event.Enabled {
+			return event
+		}
+	}
+	return events[0]
 }
 
 // Delete handles deleting a group

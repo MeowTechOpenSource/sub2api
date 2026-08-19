@@ -1,6 +1,26 @@
 <template>
-  <div class="plaza-pricing-table overflow-x-auto" :style="accentStyle">
-    <table class="w-full min-w-[860px] table-fixed border-collapse text-sm tabular-nums">
+  <div class="plaza-pricing-table" :style="accentStyle">
+    <div class="mobile-models">
+      <article v-for="m in sortedModels" :key="`mobile-${m.name}`" class="mobile-model">
+        <header>
+          <span class="model-mark"><ModelIcon :model="m.name" size="22px" /></span>
+          <div><strong>{{ m.name }}</strong><small>{{ m.platform }}</small></div>
+          <span class="mobile-rate">{{ finalRate }}x</span>
+        </header>
+        <div v-if="billingMode(m) === BILLING_MODE_TOKEN" class="mobile-prices">
+          <div><span>{{ t('modelPlaza.table.input') }}</span><strong>{{ paidPerMillion(m.pricing?.input_price) }}</strong><small>{{ official(m.official_pricing?.input_price) }}</small></div>
+          <div><span>{{ t('modelPlaza.table.output') }}</span><strong>{{ paidPerMillion(m.pricing?.output_price) }}</strong><small>{{ official(m.official_pricing?.output_price) }}</small></div>
+          <div><span>{{ t('modelPlaza.table.cache') }}</span><strong>{{ paidPerMillion(m.pricing?.cache_read_price) }}</strong><small>{{ official(m.official_pricing?.cache_read_price) }}</small></div>
+        </div>
+        <div v-else class="mobile-request-price">
+          <span>{{ billingModeLabel(m) }}</span>
+          <strong>{{ paidRequestPrice(m.pricing?.per_request_price) }} {{ perUnitSuffix(m) }}</strong>
+        </div>
+        <footer><span class="paid-key">{{ t('modelPlaza.table.yourPriceShort') }}</span><span>{{ t('modelPlaza.table.officialPrice') }}</span></footer>
+      </article>
+    </div>
+    <div class="desktop-table">
+    <table class="w-full min-w-[960px] table-fixed border-collapse text-sm tabular-nums">
       <colgroup>
         <col class="w-[22%]" />
         <col class="w-[10%]" />
@@ -59,22 +79,14 @@
       <tbody>
         <tr
           v-for="m in sortedModels"
-          :key="`${m.platform}:${m.name}`"
+          :key="m.name"
           class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50/70 dark:border-dark-800 dark:hover:bg-dark-800/50"
         >
           <!-- 模型名 + 非 token 计费模式徽章 -->
           <td class="border-r border-gray-100 py-2.5 pl-5 pr-4 align-middle dark:border-dark-700/60">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="font-medium text-gray-900 dark:text-white">{{ m.name }}</span>
-              <span
-                v-if="platform && m.platform !== platform"
-                :class="[
-                  'inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium',
-                  platformBadgeLightClass(m.platform)
-                ]"
-              >
-                {{ platformLabel(m.platform) }}
-              </span>
+            <div class="model-name-cell">
+              <span class="model-mark"><ModelIcon :model="m.name" size="23px" /></span>
+              <div><span class="font-medium text-gray-900 dark:text-white">{{ m.name }}</span></div>
               <span
                 v-if="billingMode(m) !== BILLING_MODE_TOKEN"
                 class="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-dark-700/70 dark:text-dark-300"
@@ -143,13 +155,13 @@
                   class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-800 dark:bg-dark-700/60 dark:text-gray-200"
                 >
                   <span class="font-sans text-gray-400 dark:text-dark-500">{{ tierLabel(iv) }}</span>
-                  {{ paidRequestPrice(m, iv.per_request_price)
+                  {{ paidRequestPrice(iv.per_request_price)
                   }}<span class="font-sans text-gray-400 dark:text-dark-500">{{ perUnitSuffix(m) }}</span>
                 </span>
               </div>
               <template v-else-if="m.pricing?.per_request_price != null">
                 <span class="font-mono font-semibold text-gray-900 dark:text-gray-50">
-                  {{ paidRequestPrice(m, m.pricing.per_request_price) }}
+                  {{ paidRequestPrice(m.pricing.per_request_price) }}
                 </span>
                 <span class="ml-1 text-xs text-gray-400 dark:text-dark-500">{{ perUnitSuffix(m) }}</span>
               </template>
@@ -187,24 +199,20 @@
             <span v-else class="text-gray-400 dark:text-dark-500">-</span>
           </td>
 
-          <!-- 折扣倍率(生图独立倍率行展示独立倍率;专属倍率划线展示原倍率) -->
+          <!-- 折扣倍率(专属倍率划线展示原倍率) -->
           <td
             class="border-l border-gray-100 py-2.5 pl-3 pr-5 text-right align-middle font-mono text-xs dark:border-dark-700/60"
           >
-            <span
-              v-if="usesIndependentImageRate(m)"
-              class="font-bold text-gray-700 dark:text-gray-300"
-              >{{ requestRate(m) }}x</span
-            >
-            <template v-else-if="hasCustomRate">
+            <template v-if="hasCustomRate">
               <span class="mr-1 text-gray-400 line-through dark:text-dark-500">{{ rateMultiplier }}x</span>
-              <span class="font-bold text-primary-600 dark:text-primary-400">{{ effectiveRate }}x</span>
+              <span class="font-bold text-primary-600 dark:text-primary-400">{{ finalRate }}x</span>
             </template>
-            <span v-else class="font-bold text-gray-700 dark:text-gray-300">{{ effectiveRate }}x</span>
+            <span v-else class="font-bold text-gray-700 dark:text-gray-300">{{ finalRate }}x</span>
           </td>
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 </template>
 
@@ -212,7 +220,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatScaled } from '@/utils/pricing'
-import { platformAccentColor, platformBadgeLightClass, platformLabel } from '@/utils/platformColors'
+import { platformAccentColor } from '@/utils/platformColors'
 import {
   BILLING_MODE_TOKEN,
   BILLING_MODE_IMAGE,
@@ -220,6 +228,7 @@ import {
 } from '@/constants/channel'
 import type { PlazaModel } from '@/api/modelPlaza'
 import type { UserPricingInterval } from '@/api/channels'
+import ModelIcon from '@/components/common/ModelIcon.vue'
 
 const props = defineProps<{
   models: PlazaModel[]
@@ -229,9 +238,8 @@ const props = defineProps<{
   rateMultiplier: number
   /** 用户专属倍率;与默认不同,实付价按此计算并划线展示原倍率。 */
   userRateMultiplier?: number | null
-  /** 生图独立倍率:true 时图片计费模型的实付倍率取 imageRateMultiplier,不取分组/专属倍率。 */
-  imageRateIndependent?: boolean
-  imageRateMultiplier?: number | null
+  /** Active Happy Hour multiplier, applied after the user's group rate. */
+  eventRateMultiplier?: number
 }>()
 
 const { t } = useI18n()
@@ -262,8 +270,9 @@ const sortedModels = computed(() => {
 })
 
 const effectiveRate = computed(() => props.userRateMultiplier ?? props.rateMultiplier)
+const finalRate = computed(() => Math.round(effectiveRate.value * (props.eventRateMultiplier ?? 1) * 10000) / 10000)
 const hasCustomRate = computed(
-  () => props.userRateMultiplier != null && props.userRateMultiplier !== props.rateMultiplier
+  () => finalRate.value !== props.rateMultiplier
 )
 
 function billingMode(m: PlazaModel): BillingMode {
@@ -282,23 +291,13 @@ const MIN_DECIMALS = 2
 /** 实付价 = 渠道单价 × 生效倍率,按 $/1M token 展示。 */
 function paidPerMillion(value: number | null | undefined): string {
   if (value == null) return '-'
-  return formatScaled(value * effectiveRate.value, PER_MILLION, MIN_DECIMALS)
+  return formatScaled(value * finalRate.value, PER_MILLION, MIN_DECIMALS)
 }
 
-/** 图片计费模型且分组开启生图独立倍率:实付倍率取独立倍率,与计费口径一致。 */
-function usesIndependentImageRate(m: PlazaModel): boolean {
-  return billingMode(m) === BILLING_MODE_IMAGE && props.imageRateIndependent === true
-}
-
-/** 按次/按图片行的生效倍率。 */
-function requestRate(m: PlazaModel): number {
-  return usesIndependentImageRate(m) ? (props.imageRateMultiplier ?? 1) : effectiveRate.value
-}
-
-/** 按次 / 按图片单价(乘该行生效倍率,不换算 1M)。 */
-function paidRequestPrice(m: PlazaModel, value: number | null | undefined): string {
+/** 按次 / 按图片单价(乘生效倍率,不换算 1M)。 */
+function paidRequestPrice(value: number | null | undefined): string {
   if (value == null) return '-'
-  return formatScaled(value * requestRate(m), 1, MIN_DECIMALS)
+  return formatScaled(value * finalRate.value, 1, MIN_DECIMALS)
 }
 
 /** 官方参考价不乘倍率。 */
@@ -360,6 +359,14 @@ function trimZero(n: number): string {
   --pz-bg-hover: color-mix(in srgb, var(--plaza-accent) 13%, transparent);
 }
 
+.desktop-table { overflow-x: auto; }
+.mobile-models { display: none; }
+.model-name-cell { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.model-name-cell>div { display: grid; min-width: 0; gap: 2px; }
+.model-name-cell>div>span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.model-name-cell small { color: #99917d; font-size: 9px; text-transform: uppercase; }
+.model-mark { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; border: 1px solid rgba(57,48,28,.09); border-radius: 9px; background: rgba(255,255,255,.72); }
+
 .dark .plaza-pricing-table {
   --pz-title: color-mix(in srgb, var(--plaza-accent) 70%, white);
   --pz-bg: color-mix(in srgb, var(--plaza-accent) 6%, transparent);
@@ -388,5 +395,25 @@ tbody tr:hover .pz-cell {
 
 .pz-unit {
   color: color-mix(in srgb, var(--pz-title) 62%, transparent);
+}
+
+@media (max-width: 760px) {
+  .desktop-table { display: none; }
+  .mobile-models { display: grid; }
+  .mobile-model { padding: 15px; border-bottom: 1px solid rgba(57,48,28,.08); }
+  .mobile-model:last-child { border-bottom: 0; }
+  .mobile-model header { display: flex; align-items: center; gap: 11px; }
+  .mobile-model header>div { display: grid; min-width: 0; gap: 2px; }
+  .mobile-model header strong { overflow: hidden; color: #29271f; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-model header small { color: #938b77; font-size: 9px; text-transform: uppercase; }
+  .mobile-rate { margin-left: auto; color: #276b53; font-size: 12px; font-weight: 800; }
+  .mobile-prices { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin-top: 12px; }
+  .mobile-prices>div { display: grid; min-width: 0; gap: 3px; padding: 9px; border-radius: 8px; background: var(--pz-bg); }
+  .mobile-prices span { color: #867e6a; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+  .mobile-prices strong { overflow: hidden; color: #2f4f42; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-prices small { overflow: hidden; color: #9b9380; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-request-price { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 10px; border-radius: 8px; background: var(--pz-bg); color: #7c7461; font-size: 10px; }.mobile-request-price strong { color: #2f4f42; font-size: 12px; }
+  .mobile-model footer { display: flex; gap: 12px; margin-top: 7px; color: #9b9380; font-size: 8px; }.mobile-model footer .paid-key { color: #39735b; }
+  .dark .mobile-model header strong { color: #f2eee3; }.dark .model-mark { border-color: rgba(255,255,255,.08); background: rgba(255,255,255,.05); }
 }
 </style>

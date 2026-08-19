@@ -130,6 +130,24 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	response.Success(c, profileResp)
 }
 
+// GetBalanceExpiries returns the user's remaining balance grants that expire.
+func (h *UserHandler) GetBalanceExpiries(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+	items, err := h.userService.ListExpiringBalanceCredits(c.Request.Context(), subject.UserID, 5)
+	if response.ErrorFrom(c, err) {
+		return
+	}
+	out := make([]gin.H, 0, len(items))
+	for _, item := range items {
+		out = append(out, gin.H{"remaining_amount": item.RemainingAmount, "expires_at": item.ExpiresAt})
+	}
+	response.Success(c, gin.H{"credits": out})
+}
+
 // ChangePassword handles changing user password
 // POST /api/v1/users/me/password
 func (h *UserHandler) ChangePassword(c *gin.Context) {

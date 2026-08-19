@@ -38,7 +38,7 @@
                 </button>
                 <div
                   v-if="showAutoRefreshDropdown"
-                  class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-lg border border-gray-200 bg-white shadow-lg dark:border-dark-700 dark:bg-dark-800"
+                  class="absolute right-0 z-[100000010] mt-2 w-56 origin-top-right rounded-lg border border-gray-200 bg-white shadow-lg dark:border-dark-700 dark:bg-dark-800"
                 >
                   <div class="p-2">
                     <button
@@ -78,7 +78,7 @@
                 <Teleport to="body">
                   <div
                     v-if="showAccountToolsDropdown"
-                    class="fixed z-[9999] origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-dark-700 dark:bg-dark-800"
+                    class="fixed z-[100000030] origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-dark-700 dark:bg-dark-800"
                     :style="accountToolsDropdownStyle"
                     @click.stop
                   >
@@ -609,6 +609,7 @@ const scheduleAcc = ref<Account | null>(null)
 const scheduleModelOptions = ref<SelectOption[]>([])
 const togglingSchedulable = ref<number | null>(null)
 const menu = reactive<{show:boolean, acc:Account|null, pos:{top:number, left:number}|null}>({ show: false, acc: null, pos: null })
+let menuAnchor: HTMLElement | null = null
 const exportingData = ref(false)
 const probingUpstreamBilling = reactive(new Set<number>())
 const upstreamBillingProbeGloballyEnabled = ref<boolean | undefined>(undefined)
@@ -1730,56 +1731,31 @@ const cols = computed(() =>
 )
 
 const handleEdit = (a: Account) => { edAcc.value = a; showEdit.value = true }
+const updateRowMenuPosition = () => {
+  if (!menu.show || !menuAnchor || !document.documentElement.contains(menuAnchor)) return
+  const rect = menuAnchor.getBoundingClientRect()
+  const width = 208
+  const estimatedHeight = 280
+  const edge = 8
+  const left = Math.max(edge, Math.min(rect.right - width, window.innerWidth - width - edge))
+  const below = rect.bottom + 4
+  const top = below + estimatedHeight <= window.innerHeight - edge
+    ? below
+    : Math.max(edge, rect.top - estimatedHeight - 4)
+  menu.pos = { top, left }
+}
 const openMenu = (a: Account, e: MouseEvent) => {
   menu.acc = a
 
   const target = e.currentTarget as HTMLElement
   if (target) {
-    const rect = target.getBoundingClientRect()
-    const menuWidth = 200
-    const menuHeight = 240
-    const padding = 8
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-
-    let left: number
-    let top: number
-
-    if (viewportWidth < 768) {
-      // 居中显示,水平位置
-      left = Math.max(padding, Math.min(
-        rect.left + rect.width / 2 - menuWidth / 2,
-        viewportWidth - menuWidth - padding
-      ))
-
-      // 优先显示在按钮下方
-      top = rect.bottom + 4
-
-      // 如果下方空间不够,显示在上方
-      if (top + menuHeight > viewportHeight - padding) {
-        top = rect.top - menuHeight - 4
-        // 如果上方也不够,就贴在视口顶部
-        if (top < padding) {
-          top = padding
-        }
-      }
-    } else {
-      left = Math.max(padding, Math.min(
-        e.clientX - menuWidth,
-        viewportWidth - menuWidth - padding
-      ))
-      top = e.clientY
-      if (top + menuHeight > viewportHeight - padding) {
-        top = viewportHeight - menuHeight - padding
-      }
-    }
-
-    menu.pos = { top, left }
+    menuAnchor = target
+    menu.show = true
+    updateRowMenuPosition()
   } else {
     menu.pos = { top: e.clientY, left: e.clientX - 200 }
+    menu.show = true
   }
-
-  menu.show = true
 }
 const toggleSelectAllVisible = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -2417,13 +2393,17 @@ const proxyExpiryText = (p: AccountProxy): string => {
   return params ? t(key, params) : t(key)
 }
 
-// 表格滚动时关闭行操作菜单，并让顶部工具菜单继续贴紧触发按钮。
-const handleScroll = () => {
-  menu.show = false
+// Keep open overlays anchored while their table or page scrolls.
+const handleScroll = (event: Event) => {
+  const target = event.target
+  if (menu.show && (!(target instanceof Element) || !target.closest('.action-menu-content'))) {
+    updateRowMenuPosition()
+  }
   if (showAccountToolsDropdown.value) updateAccountToolsDropdownPosition()
 }
 
 const handleViewportResize = () => {
+  if (menu.show) updateRowMenuPosition()
   if (showAccountToolsDropdown.value) updateAccountToolsDropdownPosition()
 }
 

@@ -281,6 +281,20 @@ type userProfileIdentityTxRunner interface {
 	WithUserProfileIdentityTx(ctx context.Context, fn func(txCtx context.Context) error) error
 }
 
+type BalanceCreditExpiry struct {
+	RemainingAmount float64
+	ExpiresAt       time.Time
+}
+
+type BalanceCreditExpiryRepository interface {
+	ListExpiringBalanceCredits(ctx context.Context, userID int64, limit int) ([]BalanceCreditExpiry, error)
+	SweepExpiredBalanceCredits(ctx context.Context, now time.Time) ([]int64, error)
+}
+
+type RedeemBalanceCreditRepository interface {
+	GrantRedeemBalanceCredit(ctx context.Context, userID, redeemCodeID int64, amount float64, expiresAt time.Time) error
+}
+
 // ChangePasswordRequest 修改密码请求
 type ChangePasswordRequest struct {
 	CurrentPassword string `json:"current_password"`
@@ -327,6 +341,14 @@ func (s *UserService) GetProfile(ctx context.Context, userID int64) (*User, erro
 		return nil, fmt.Errorf("get user avatar: %w", err)
 	}
 	return user, nil
+}
+
+func (s *UserService) ListExpiringBalanceCredits(ctx context.Context, userID int64, limit int) ([]BalanceCreditExpiry, error) {
+	reader, ok := s.userRepo.(BalanceCreditExpiryRepository)
+	if !ok {
+		return []BalanceCreditExpiry{}, nil
+	}
+	return reader.ListExpiringBalanceCredits(ctx, userID, limit)
 }
 
 func (s *UserService) GetProfileIdentitySummaries(ctx context.Context, userID int64, user *User) (UserIdentitySummarySet, error) {

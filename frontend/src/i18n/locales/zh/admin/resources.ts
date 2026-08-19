@@ -315,6 +315,8 @@ export default {
       selectGroupPlaceholder: '选择订阅分组',
       validityDays: '有效天数',
       codeExpiry: '兑换码过期',
+      balanceExpiry: '余额过期',
+      balanceExpiryHint: '兑换码必须在此时间前兑换；该兑换码剩余的未使用余额也会在此时间过期。',
       neverExpires: '永不过期',
       expiryPresetDays: '{days} 天',
       customExpiry: '自定义',

@@ -32,11 +32,11 @@
     </template>
 
     <template v-else>
-      <div v-if="selectable" class="flex items-center justify-end gap-2 px-1">
-        <label class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+      <div v-if="selectable" class="mobile-selection-bar">
+        <label class="mobile-selection-bar__label">
           <input
             type="checkbox"
-            class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800"
+            class="table-selection-checkbox"
             :checked="allVisibleSelected"
             :indeterminate="someVisibleSelected"
             data-test="select-all-mobile"
@@ -48,10 +48,10 @@
       <div
         v-for="(row, index) in sortedData"
         :key="resolveRowKey(row, index)"
-        class="rounded-lg border border-gray-200 bg-white p-4 dark:border-dark-700 dark:bg-dark-900"
+        class="mobile-data-card"
         :class="{
           'cursor-pointer': clickableRows,
-          'border-primary-300 bg-primary-50/40 dark:border-primary-700 dark:bg-primary-900/10': selectable && isRowSelected(row, index)
+          'mobile-data-card--selected': selectable && isRowSelected(row, index)
         }"
         @click="clickableRows && emit('rowClick', row)"
       >
@@ -59,7 +59,7 @@
           <div v-if="selectable" class="flex justify-end">
             <input
               type="checkbox"
-              class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800"
+              class="table-selection-checkbox"
               :checked="isRowSelected(row, index)"
               :aria-label="getRowSelectionLabel(row, index)"
               data-test="select-row"
@@ -109,7 +109,7 @@
           >
             <input
               type="checkbox"
-              class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800"
+              class="table-selection-checkbox"
               :checked="allVisibleSelected"
               :indeterminate="someVisibleSelected"
               :aria-label="t('common.selectAll')"
@@ -216,14 +216,14 @@
             class="hover:bg-gray-50 dark:hover:bg-dark-800"
             :class="{
               'cursor-pointer': clickableRows,
-              'bg-primary-50/40 dark:bg-primary-900/10': selectable && isRowSelected(item.row, item.index)
+              'table-row--selected': selectable && isRowSelected(item.row, item.index)
             }"
             @click="clickableRows && emit('rowClick', item.row)"
           >
             <td v-if="selectable" class="w-11 min-w-11 px-3 py-4 text-center">
               <input
                 type="checkbox"
-                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800"
+                class="table-selection-checkbox"
                 :checked="isRowSelected(item.row, item.index)"
                 :aria-label="getRowSelectionLabel(item.row, item.index)"
                 data-test="select-row"
@@ -951,6 +951,13 @@ defineExpose({
 </script>
 
 <style scoped>
+.mobile-selection-bar { display:flex; justify-content:flex-end; padding:6px 8px; border:1px solid var(--line); border-radius:9px; background:color-mix(in srgb,var(--surface) 82%,transparent); }
+.mobile-selection-bar__label { display:flex; align-items:center; gap:8px; color:var(--ink-muted); font-size:12px; font-weight:650; }
+.mobile-data-card { padding:16px; border:1px solid var(--line); border-radius:10px; background:var(--surface); box-shadow:var(--shadow-panel); transition:border-color .18s ease,background .18s ease,transform .18s ease; }
+.mobile-data-card--selected { border-color:rgba(39,107,83,.3); background:rgba(39,107,83,.045); transform:translateY(-1px); }
+.table-selection-checkbox { width:16px; height:16px; cursor:pointer; accent-color:#276b53; }
+.table-row--selected,.table-row--selected .sticky-col { background:rgba(39,107,83,.055) !important; }
+.dark .mobile-data-card--selected,.dark .table-row--selected,.dark .table-row--selected .sticky-col { background:rgba(39,107,83,.13) !important; }
 /* 表格横向滚动 */
 .table-wrapper {
   --select-col-width: 52px; /* 勾选列宽度：px-6 (24px*2) + checkbox (16px) */
@@ -960,18 +967,34 @@ defineExpose({
   flex: 1;
   min-height: 0;
   isolation: isolate;
+  background: var(--surface);
+}
+
+.space-y-3 > div {
+  border-color: var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-panel);
+  transform: translateZ(0);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.space-y-3 > div:hover {
+  border-color: rgba(39, 107, 83, 0.2);
+  box-shadow: var(--shadow-depth);
+  transform: perspective(900px) translateY(-2px) rotateX(0.35deg);
 }
 
 /* 表头容器，确保在滚动时覆盖表体内容 */
 .table-wrapper .table-header {
   position: sticky;
   top: 0;
-  z-index: 200;
-  background-color: rgb(249 250 251);
+  z-index: 30;
+  background-color: #f0f7f3;
 }
 
 .dark .table-wrapper .table-header {
-  background-color: rgb(31 41 55);
+  background-color: rgba(23, 37, 84, 0.32);
 }
 
 /* 表体保持在表头下方 */
@@ -980,16 +1003,24 @@ defineExpose({
   z-index: 0;
 }
 
+.table-body > tr {
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.table-body > tr:hover {
+  box-shadow: 3px 0 0 var(--brand) inset;
+}
+
 /* 所有表头单元格固定在顶部 */
 .sticky-header-cell {
   position: sticky;
   top: 0;
-  z-index: 210; /* 必须高于所有表体内容 */
-  background-color: rgb(249 250 251);
+  z-index: 31; /* Above body cells, below menus and overlays. */
+  background-color: #f0f7f3;
 }
 
 .dark .sticky-header-cell {
-  background-color: rgb(31 41 55);
+  background-color: rgb(24 33 50);
 }
 
 /* Sticky 列基础样式 */
@@ -1020,25 +1051,25 @@ defineExpose({
 
 /* 表头 sticky 列 - 需要比普通表头单元格更高的 z-index */
 .sticky-header-cell.sticky-col {
-  z-index: 220; /* 高于普通表头单元格和表体固定列 */
+  z-index: 32; /* Above regular header cells and sticky body columns. */
 }
 
 /* 表体 sticky 列背景 */
 tbody .sticky-col {
-  background-color: white;
+  background-color: var(--surface);
 }
 
 .dark tbody .sticky-col {
-  background-color: rgb(17 24 39);
+  background-color: var(--surface);
 }
 
 /* hover 状态保持 */
 tbody tr:hover .sticky-col {
-  background-color: rgb(249 250 251);
+  background-color: #f5f8ff;
 }
 
 .dark tbody tr:hover .sticky-col {
-  background-color: rgb(31 41 55);
+  background-color: rgb(31 43 64);
 }
 
 /* 阴影只在可滚动时显示 */

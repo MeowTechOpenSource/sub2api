@@ -1,39 +1,40 @@
 <template>
-  <div class="space-y-5">
-    <!-- 页头(独立形态下展示标题;后台形态 AppHeader 已有页面标题) -->
-    <div v-if="!embedded">
-      <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">{{ t('modelPlaza.title') }}</h1>
-      <p class="mt-1.5 text-sm text-gray-500 dark:text-dark-400">{{ t('modelPlaza.description') }}</p>
+  <div class="plaza-page">
+    <header class="plaza-hero">
+      <div class="plaza-hero__copy">
+        <span class="plaza-eyebrow">{{ t('modelPlaza.catalogLabel') }}</span>
+        <h1>{{ t('modelPlaza.title') }}</h1>
+        <p>{{ isAuthenticated ? t('modelPlaza.memberDescription') : t('modelPlaza.description') }}</p>
+      </div>
+      <button type="button" class="plaza-refresh" :disabled="loading" @click="$emit('reload')">
+        <Icon name="refresh" size="sm" :class="{ 'animate-spin': loading }" />
+        <span>{{ t('modelPlaza.refresh') }}</span>
+      </button>
+    </header>
+
+    <div v-if="!loading && response" class="plaza-stats" aria-live="polite">
+      <div><strong>{{ totalModels }}</strong><span>{{ t('modelPlaza.stats.models') }}</span></div>
+      <div><strong>{{ response.groups.length }}</strong><span>{{ t('modelPlaza.stats.groups') }}</span></div>
+      <div><strong>{{ platforms.length }}</strong><span>{{ t('modelPlaza.stats.platforms') }}</span></div>
+      <div><strong>{{ activeEventCount }}</strong><span>{{ t('modelPlaza.stats.liveEvents') }}</span></div>
     </div>
 
-    <!-- 全局价格说明(管理员配置,Markdown) -->
-    <div
-      v-if="descriptionHtml"
-      class="plaza-description rounded-2xl border border-gray-100 bg-white px-5 py-4 text-sm shadow-card dark:border-dark-700/50 dark:bg-dark-800/50"
-      v-html="descriptionHtml"
-    ></div>
+    <div v-if="descriptionHtml" class="plaza-description" v-html="descriptionHtml"></div>
 
-    <!-- 未登录提示 -->
-    <p
-      v-if="!isAuthenticated"
-      class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-dark-500"
-    >
-      <Icon name="infoCircle" size="xs" class="h-3.5 w-3.5" />
-      {{ t('modelPlaza.anonymousHint') }}
-    </p>
-
-    <!-- 加载/错误/空 -->
-    <div v-if="loading" class="flex min-h-[240px] items-center justify-center">
-      <div class="h-8 w-8 animate-spin rounded-full border-2 border-primary-600/25 border-t-primary-600 dark:border-primary-400/25 dark:border-t-primary-400"></div>
+    <div v-if="!isAuthenticated" class="plaza-notice">
+      <Icon name="infoCircle" size="sm" />
+      <span>{{ t('modelPlaza.anonymousHint') }}</span>
     </div>
-    <div
-      v-else-if="error"
-      class="rounded-2xl border border-red-200 bg-red-50 px-5 py-8 text-center text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
-    >
-      {{ t('modelPlaza.loadFailed') }}
+
+    <div v-if="loading" class="plaza-loading" aria-live="polite">
+      <span v-for="item in 3" :key="item"></span>
+    </div>
+    <div v-else-if="error" class="plaza-state plaza-state--error">
+      <Icon name="exclamationCircle" size="lg" />
+      <strong>{{ t('modelPlaza.loadFailed') }}</strong>
+      <button type="button" @click="$emit('reload')">{{ t('modelPlaza.tryAgain') }}</button>
     </div>
     <template v-else>
-      <!-- 筛选区:平台 → 分组 → 倍率 -->
       <PlazaFilterBar
         :platforms="platforms"
         :groups="groupOptions"
@@ -48,15 +49,12 @@
         @update:search="searchQuery = $event"
       />
 
-      <!-- 分组分节的模型清单(默认按生效倍率升序) -->
-      <div v-if="filteredGroups.length > 0" class="space-y-5">
-        <PlazaGroupSection v-for="g in filteredGroups" :key="g.id" :group="g" />
-      </div>
-      <div
-        v-else
-        class="rounded-2xl border border-dashed border-gray-300 px-5 py-12 text-center text-sm text-gray-500 dark:border-dark-600 dark:text-dark-400"
-      >
-        {{ searchActive ? t('modelPlaza.noSearchResult') : t('modelPlaza.empty') }}
+      <TransitionGroup v-if="filteredGroups.length" name="plaza-list" tag="div" class="plaza-groups">
+        <PlazaGroupSection v-for="group in filteredGroups" :key="group.id" :group="group" />
+      </TransitionGroup>
+      <div v-else class="plaza-state">
+        <Icon name="search" size="lg" />
+        <strong>{{ searchActive ? t('modelPlaza.noSearchResult') : t('modelPlaza.empty') }}</strong>
       </div>
     </template>
   </div>
@@ -77,119 +75,101 @@ const props = defineProps<{
   response: ModelPlazaResponse | null
   loading: boolean
   error?: boolean
-  /** 后台内嵌形态(AppLayout 内):隐藏页头。 */
   embedded?: boolean
 }>()
+
+defineEmits<{ reload: [] }>()
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
-
 const selectedPlatform = ref<string>('all')
 const selectedGroupId = ref<number | 'all'>('all')
 const selectedRate = ref<number | 'all'>('all')
 const searchQuery = ref('')
-
 const searchActive = computed(() => searchQuery.value.trim() !== '')
 
 const descriptionHtml = computed(() => {
-  const md = props.response?.description?.trim()
-  if (!md) return ''
-  return DOMPurify.sanitize(marked.parse(md) as string)
+  const markdown = props.response?.description?.trim()
+  return markdown ? DOMPurify.sanitize(marked.parse(markdown) as string) : ''
 })
 
-/** 生效倍率 = 用户专属倍率 ?? 分组默认倍率。 */
-function effectiveRate(g: ModelPlazaGroup): number {
-  return g.user_rate_multiplier ?? g.rate_multiplier
+function effectiveRate(group: ModelPlazaGroup): number {
+  return group.user_rate_multiplier ?? group.rate_multiplier
 }
 
 const platforms = computed(() =>
-  [...new Set((props.response?.groups ?? []).map((g) => g.platform).filter(Boolean))].sort()
+  [...new Set((props.response?.groups ?? []).map((group) => group.platform).filter(Boolean))].sort()
 )
-
 const groupOptions = computed(() =>
-  (props.response?.groups ?? []).map((g) => ({
-    id: g.id,
-    name: g.name,
-    platform: g.platform,
-    rate: effectiveRate(g)
+  (props.response?.groups ?? []).map((group) => ({
+    id: group.id,
+    name: group.name,
+    platform: group.platform,
+    rate: effectiveRate(group),
+    modelCount: group.models.length,
   }))
 )
-
-/** 全量生效倍率;当前组合下不可用的项由 FilterBar 置灰而非隐藏。 */
 const rates = computed(() =>
   [...new Set((props.response?.groups ?? []).map(effectiveRate))].sort((a, b) => a - b)
 )
+const totalModels = computed(() => new Set(
+  (props.response?.groups ?? []).flatMap((group) => group.models.map((model) => `${model.platform}:${model.name}`))
+).size)
+const activeEventCount = computed(() =>
+  (props.response?.groups ?? []).filter((group) => group.active_happy_hour || group.peak_rate_active).length
+)
 
-/** 数据刷新后选中的倍率可能不复存在,重置为全部。 */
 watch(rates, (list) => {
-  if (selectedRate.value !== 'all' && !list.includes(selectedRate.value)) {
-    selectedRate.value = 'all'
-  }
+  if (selectedRate.value !== 'all' && !list.includes(selectedRate.value)) selectedRate.value = 'all'
 })
 
 const filteredGroups = computed(() => {
   let groups = props.response?.groups ?? []
-  if (selectedPlatform.value !== 'all') {
-    groups = groups.filter((g) => g.platform === selectedPlatform.value)
-  }
-  if (selectedGroupId.value !== 'all') {
-    groups = groups.filter((g) => g.id === selectedGroupId.value)
-  }
-  if (selectedRate.value !== 'all') {
-    groups = groups.filter((g) => effectiveRate(g) === selectedRate.value)
-  }
-  // 模型名搜索:分组内只留命中的模型,整组无命中则隐藏该分组。
-  const q = searchQuery.value.trim().toLowerCase()
-  if (q) {
+  if (selectedPlatform.value !== 'all') groups = groups.filter((group) => group.platform === selectedPlatform.value)
+  if (selectedGroupId.value !== 'all') groups = groups.filter((group) => group.id === selectedGroupId.value)
+  if (selectedRate.value !== 'all') groups = groups.filter((group) => effectiveRate(group) === selectedRate.value)
+  const query = searchQuery.value.trim().toLowerCase()
+  if (query) {
     groups = groups
-      .map((g) => ({ ...g, models: g.models.filter((m) => m.name.toLowerCase().includes(q)) }))
-      .filter((g) => g.models.length > 0)
+      .map((group) => ({ ...group, models: group.models.filter((model) => model.name.toLowerCase().includes(query)) }))
+      .filter((group) => group.models.length > 0)
   }
-  // 专属倍率会改变生效值,不能只依赖后端按默认倍率的排序。
-  return [...groups].sort(
-    (a, b) => effectiveRate(a) - effectiveRate(b) || a.name.localeCompare(b.name)
-  )
+  return [...groups].sort((a, b) => effectiveRate(a) - effectiveRate(b) || a.name.localeCompare(b.name))
 })
 </script>
 
 <style scoped>
-.plaza-description {
-  line-height: 1.7;
-  overflow-wrap: anywhere;
-}
-
-.plaza-description :deep(h1),
-.plaza-description :deep(h2),
-.plaza-description :deep(h3) {
-  @apply mb-2 mt-3 font-semibold text-gray-900 first:mt-0 dark:text-white;
-}
-
-.plaza-description :deep(p) {
-  @apply mb-2 text-gray-700 last:mb-0 dark:text-dark-200;
-}
-
-.plaza-description :deep(a) {
-  @apply text-primary-600 underline underline-offset-4 hover:text-primary-700 dark:text-primary-300;
-}
-
-.plaza-description :deep(ul) {
-  @apply mb-2 list-disc pl-5;
-}
-
-.plaza-description :deep(ol) {
-  @apply mb-2 list-decimal pl-5;
-}
-
-.plaza-description :deep(li) {
-  @apply mb-0.5 text-gray-700 dark:text-dark-200;
-}
-
-.plaza-description :deep(code) {
-  @apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-dark-800;
-}
-
-.plaza-description :deep(blockquote) {
-  @apply my-2 border-l-4 border-gray-300 pl-3 text-gray-600 dark:border-dark-600 dark:text-dark-300;
-}
+.plaza-page { display: grid; gap: 20px; color: #302e26; animation: plaza-enter .42s ease both; }
+.plaza-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 4px 2px 2px; }
+.plaza-eyebrow { display: block; margin-bottom: 7px; color: #276b53; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.plaza-hero h1 { margin: 0; color: #24231d; font-size: 38px; font-weight: 760; line-height: 1.15; letter-spacing: 0; }
+.plaza-hero p { max-width: 680px; margin: 8px 0 0; color: #756e5d; font-size: 14px; line-height: 1.65; }
+.plaza-refresh { display: inline-flex; min-height: 42px; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid rgba(57,48,28,.13); border-radius: 10px; background: rgba(255,255,255,.62); color: #3f5f51; font-size: 13px; font-weight: 700; box-shadow: 0 8px 24px rgba(67,55,26,.06); backdrop-filter: blur(16px); transition: transform .18s ease, background .18s ease, box-shadow .18s ease; }
+.plaza-refresh:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,.9); box-shadow: 0 12px 26px rgba(67,55,26,.1); }
+.plaza-refresh:disabled { opacity: .55; }
+.plaza-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); border: 1px solid rgba(57,48,28,.1); border-radius: 12px; background: rgba(255,253,244,.62); box-shadow: 0 12px 35px rgba(67,55,26,.06); backdrop-filter: blur(18px); }
+.plaza-stats>div { display: flex; min-width: 0; align-items: baseline; gap: 8px; padding: 16px 18px; border-right: 1px solid rgba(57,48,28,.08); }
+.plaza-stats>div:last-child { border: 0; }
+.plaza-stats strong { color: #245d48; font-size: 22px; font-weight: 760; font-variant-numeric: tabular-nums; }
+.plaza-stats span { color: #847c68; font-size: 11px; font-weight: 700; }
+.plaza-description { padding: 15px 17px; border-left: 3px solid #3e7961; border-radius: 0 10px 10px 0; background: rgba(255,255,255,.48); color: #575245; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.plaza-description :deep(p) { margin: 0 0 6px; }.plaza-description :deep(p:last-child) { margin: 0; }
+.plaza-description :deep(a) { color: #276b53; text-decoration: underline; text-underline-offset: 3px; }
+.plaza-description :deep(ul),.plaza-description :deep(ol) { margin: 6px 0; padding-left: 20px; }
+.plaza-notice { display: flex; align-items: center; gap: 9px; color: #746d5c; font-size: 12px; }
+.plaza-groups { display: grid; gap: 18px; }
+.plaza-loading { display: grid; gap: 14px; }
+.plaza-loading span { height: 180px; border: 1px solid rgba(57,48,28,.08); border-radius: 12px; background: rgba(255,255,255,.45); animation: plaza-pulse 1.4s ease-in-out infinite; }
+.plaza-loading span:nth-child(2) { animation-delay: .12s; }.plaza-loading span:nth-child(3) { animation-delay: .24s; }
+.plaza-state { display: grid; min-height: 220px; place-items: center; align-content: center; gap: 10px; border: 1px dashed rgba(57,48,28,.18); border-radius: 12px; color: #8a826f; font-size: 13px; }
+.plaza-state--error { color: #9b4939; }
+.plaza-state button { min-height: 38px; padding: 0 13px; border: 1px solid currentColor; border-radius: 9px; background: transparent; font-weight: 700; }
+.plaza-list-enter-active,.plaza-list-leave-active { transition: opacity .24s ease, transform .24s ease; }.plaza-list-enter-from,.plaza-list-leave-to { opacity: 0; transform: translateY(7px); }
+.dark .plaza-page { color: #e8e4d8; }.dark .plaza-hero h1 { color: #f5f1e6; }.dark .plaza-hero p { color: #aaa591; }
+.dark .plaza-stats,.dark .plaza-refresh { border-color: rgba(255,255,255,.09); background: rgba(35,37,32,.72); }.dark .plaza-description { background: rgba(255,255,255,.04); color: #c5c0b1; }
+@keyframes plaza-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes plaza-pulse { 50% { opacity: .48; } }
+@media (max-width: 720px) { .plaza-page { gap: 16px; }.plaza-hero { align-items: flex-start; }.plaza-hero h1 { font-size: 28px; }.plaza-refresh span { display: none; }.plaza-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }.plaza-stats>div:nth-child(2) { border-right: 0; }.plaza-stats>div:nth-child(-n+2) { border-bottom: 1px solid rgba(57,48,28,.08); } }
+@media (prefers-reduced-motion: reduce) { .plaza-page,.plaza-loading span { animation: none; }.plaza-list-enter-active,.plaza-list-leave-active { transition: none; } }
 </style>

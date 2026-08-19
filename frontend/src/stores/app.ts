@@ -13,6 +13,7 @@ import {
   type ReleaseInfo
 } from '@/api/admin/system'
 import { getPublicSettings as fetchPublicSettingsAPI } from '@/api/auth'
+import { configureCurrencyDisplay } from '@/utils/currency'
 
 export const useAppStore = defineStore('app', () => {
   // ==================== State ====================
@@ -300,6 +301,10 @@ export const useAppStore = defineStore('app', () => {
     contactInfo.value = config.contact_info || ''
     apiBaseUrl.value = config.api_base_url || ''
     docUrl.value = config.doc_url || ''
+    configureCurrencyDisplay({
+      symbol: config.currency_symbol,
+      name: config.currency_name,
+    })
     publicSettingsLoaded.value = true
   }
 
@@ -342,6 +347,8 @@ export const useAppStore = defineStore('app', () => {
         site_name: siteName.value,
         site_logo: siteLogo.value,
         site_subtitle: '',
+        currency_symbol: '$',
+        currency_name: 'USD',
         api_base_url: apiBaseUrl.value,
         contact_info: contactInfo.value,
         doc_url: docUrl.value,

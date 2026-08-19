@@ -23,13 +23,13 @@
             {{ formatTokens(user.total_tokens) }}
           </td>
           <td class="py-1 text-right text-green-600 dark:text-green-400">
-            ${{ formatCost(user.actual_cost) }}
+            {{ formatCostWithCurrency(user.actual_cost) }}
           </td>
           <td v-if="showAccountCost" class="py-1 text-right text-orange-500 dark:text-orange-400">
-            ${{ formatCost(user.account_cost) }}
+            {{ formatCostWithCurrency(user.account_cost) }}
           </td>
           <td class="py-1 pr-1 text-right text-gray-400 dark:text-gray-500">
-            ${{ formatCost(user.cost) }}
+            {{ formatCostWithCurrency(user.cost) }}
           </td>
         </tr>
       </tbody>
@@ -42,6 +42,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import type { UserBreakdownItem } from '@/types'
+import { decorateDisplayCurrency } from '@/utils/currency'
 
 const { t } = useI18n()
 
@@ -49,9 +50,11 @@ const props = withDefaults(defineProps<{
   items: UserBreakdownItem[]
   loading?: boolean
   showAccountCost?: boolean
+  useDisplayCurrency?: boolean
 }>(), {
   loading: false,
   showAccountCost: true,
+  useDisplayCurrency: false,
 })
 
 const showAccountCost = computed(() => props.showAccountCost)
@@ -69,5 +72,10 @@ const formatCost = (value: number | undefined | null): string => {
   if (value >= 1) return value.toFixed(2)
   if (value >= 0.01) return value.toFixed(3)
   return value.toFixed(4)
+}
+
+const formatCostWithCurrency = (value: number | undefined | null): string => {
+  const formatted = formatCost(value)
+  return props.useDisplayCurrency ? decorateDisplayCurrency(formatted) : `$${formatted}`
 }
 </script>

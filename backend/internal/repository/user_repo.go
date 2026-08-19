@@ -33,6 +33,8 @@ type userRepository struct {
 }
 
 var _ service.RedeemUserAdjustmentRepository = (*userRepository)(nil)
+var _ service.BalanceCreditExpiryRepository = (*userRepository)(nil)
+var _ service.RedeemBalanceCreditRepository = (*userRepository)(nil)
 
 func NewUserRepository(client *dbent.Client, sqlDB *sql.DB) service.UserRepository {
 	return newUserRepositoryWithSQL(client, sqlDB)
@@ -40,6 +42,127 @@ func NewUserRepository(client *dbent.Client, sqlDB *sql.DB) service.UserReposito
 
 func newUserRepositoryWithSQL(client *dbent.Client, sqlq sqlExecutor) *userRepository {
 	return &userRepository{client: client, sql: sqlq}
+}
+
+func (r *userRepository) ListExpiringBalanceCredits(ctx context.Context, userID int64, limit int) ([]service.BalanceCreditExpiry, error) {
+	if limit <= 0 || limit > 10 {
+		limit = 10
+	}
+	rows, err := r.client.QueryContext(ctx, `
+		SELECT remaining_amount, expires_at
+		FROM user_redeem_balance_credits
+		WHERE user_id = $1 AND expires_at > NOW() AND remaining_amount > 0
+		ORDER BY expires_at ASC, id ASC
+		LIMIT $2
+	`, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]service.BalanceCreditExpiry, 0)
+	for rows.Next() {
+		var item service.BalanceCreditExpiry
+		if err := rows.Scan(&item.RemainingAmount, &item.ExpiresAt); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
+}
+
+func (r *userRepository) SweepExpiredBalanceCredits(ctx context.Context, now time.Time) ([]int64, error) {
+	rows, err := r.client.QueryContext(ctx, `
+		WITH expired AS (
+			UPDATE user_redeem_balance_credits
+			SET remaining_amount = 0, expired_at = $1, updated_at = $1
+			WHERE expires_at <= $1 AND remaining_amount > 0
+			RETURNING user_id, remaining_amount
+		), expired_totals AS (
+			SELECT user_id, SUM(remaining_amount) AS amount FROM expired GROUP BY user_id
+		)
+		UPDATE users
+		SET balance = GREATEST(users.balance - expired_totals.amount, 0), updated_at = $1
+		FROM expired_totals
+		WHERE users.id = expired_totals.user_id AND users.deleted_at IS NULL
+		RETURNING users.id
+	`, now.UTC())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	userIDs := make([]int64, 0)
+	for rows.Next() {
+		var userID int64
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+	return userIDs, rows.Err()
+}
+
+func (r *userRepository) GrantRedeemBalanceCredit(ctx context.Context, userID, redeemCodeID int64, amount float64, expiresAt time.Time) error {
+	if amount <= 0 || expiresAt.IsZero() {
+		return nil
+	}
+	_, err := clientFromContext(ctx, r.client).ExecContext(ctx, `
+		INSERT INTO user_redeem_balance_credits
+			(user_id, redeem_code_id, original_amount, remaining_amount, expires_at)
+		VALUES ($1, $2, $3, $3, $4)
+		ON CONFLICT (redeem_code_id) DO NOTHING
+	`, userID, redeemCodeID, amount, expiresAt.UTC())
+	return err
+}
+
+func (r *userRepository) expireRedeemBalanceCredits(ctx context.Context, userID int64) (bool, error) {
+	result, err := clientFromContext(ctx, r.client).ExecContext(ctx, `
+		WITH expired AS (
+			UPDATE user_redeem_balance_credits
+			SET remaining_amount = 0, expired_at = NOW(), updated_at = NOW()
+			WHERE user_id = $1 AND expires_at <= NOW() AND remaining_amount > 0
+			RETURNING remaining_amount
+		), expired_total AS (
+			SELECT COALESCE(SUM(remaining_amount), 0) AS amount FROM expired
+		)
+		UPDATE users
+		SET balance = GREATEST(balance - (SELECT amount FROM expired_total), 0), updated_at = NOW()
+		WHERE id = $1 AND deleted_at IS NULL AND (SELECT amount FROM expired_total) > 0
+	`, userID)
+	if err != nil {
+		return false, err
+	}
+	affected, err := result.RowsAffected()
+	return affected > 0, err
+}
+
+func (r *userRepository) consumeRedeemBalanceCredits(ctx context.Context, userID int64, amount float64) error {
+	if amount <= 0 {
+		return nil
+	}
+	_, err := clientFromContext(ctx, r.client).ExecContext(ctx, `
+		WITH locked AS (
+			SELECT id, remaining_amount, expires_at
+			FROM user_redeem_balance_credits
+			WHERE user_id = $1 AND expires_at > NOW() AND remaining_amount > 0
+			FOR UPDATE
+		), eligible AS (
+			SELECT id, remaining_amount,
+				SUM(remaining_amount) OVER (ORDER BY expires_at ASC, id ASC) AS running_amount
+			FROM locked
+		)
+		UPDATE user_redeem_balance_credits AS credit
+		SET remaining_amount = CASE
+				WHEN eligible.running_amount <= $2 THEN 0
+				ELSE eligible.running_amount - $2
+			END,
+			updated_at = NOW()
+		FROM eligible
+		WHERE credit.id = eligible.id
+			AND eligible.running_amount - eligible.remaining_amount < $2
+	`, userID, amount)
+	return err
 }
 
 func (r *userRepository) Create(ctx context.Context, userIn *service.User) error {
@@ -169,6 +292,9 @@ func (r *userRepository) create(ctx context.Context, userIn *service.User, guard
 }
 
 func (r *userRepository) GetByID(ctx context.Context, id int64) (*service.User, error) {
+	if _, err := r.expireRedeemBalanceCredits(ctx, id); err != nil {
+		return nil, err
+	}
 	m, err := r.client.User.Query().Where(dbuser.IDEQ(id)).Only(ctx)
 	if err != nil {
 		return nil, translatePersistenceError(err, service.ErrUserNotFound, nil)
@@ -817,6 +943,14 @@ func (r *userRepository) filterUsersByAttributes(ctx context.Context, attrs map[
 }
 
 func (r *userRepository) UpdateBalance(ctx context.Context, id int64, amount float64) error {
+	if amount < 0 {
+		if _, err := r.expireRedeemBalanceCredits(ctx, id); err != nil {
+			return err
+		}
+		if err := r.consumeRedeemBalanceCredits(ctx, id, -amount); err != nil {
+			return err
+		}
+	}
 	client := clientFromContext(ctx, r.client)
 	update := client.User.Update().Where(dbuser.IDEQ(id)).AddBalance(amount)
 	// Track cumulative recharge amount for percentage-based notifications
@@ -858,6 +992,12 @@ func (r *userRepository) ApplyRedeemBalanceAdjustment(ctx context.Context, id in
 // 透支策略：允许余额变为负数，确保当前请求能够完成
 // 中间件会阻止余额 <= 0 的用户发起后续请求
 func (r *userRepository) DeductBalance(ctx context.Context, id int64, amount float64) error {
+	if _, err := r.expireRedeemBalanceCredits(ctx, id); err != nil {
+		return err
+	}
+	if err := r.consumeRedeemBalanceCredits(ctx, id, amount); err != nil {
+		return err
+	}
 	client := clientFromContext(ctx, r.client)
 	n, err := client.User.Update().
 		Where(dbuser.IDEQ(id), dbuser.BalanceGTE(amount)).

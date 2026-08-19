@@ -47,6 +47,35 @@ export default {
       totpHint: '清理操作日志需要现场验证 TOTP 验证码。',
       success: '已清理 {count} 条操作日志',
       failed: '清理操作日志失败'
+    },
+    values: {
+      actionFormat: '{resource}：{verb}',
+      unknownAction: '未知操作',
+      authMethods: {
+        jwt: '登录会话',
+        adminApiKey: '管理员 API 密钥'
+      },
+      roles: {
+        admin: '管理员',
+        user: '用户',
+        system: '系统',
+        unknown: '未知角色'
+      },
+      verbs: {
+        create: '创建', update: '更新', delete: '删除', read: '查看', import: '导入', export: '导出',
+        clear: '清理', restore: '恢复', download: '下载', regenerate: '重新生成', verify: '验证',
+        login: '登录', register: '注册', refresh: '刷新'
+      },
+      resources: {
+        system: '系统', auth: '身份认证', accounts: '账号', backups: '备份', settings: '系统设置',
+        users: '用户', groups: '分组', proxies: '代理', redeem_codes: '兑换码', audit_log: '操作日志',
+        admin_api_key: '管理员 API 密钥', api_keys: 'API 密钥', s3_config: 'S3 配置',
+        data_management: '数据管理', totp: '双重验证', session_binding: '会话绑定'
+      },
+      specialActions: {
+        login: '登录', login2fa: '完成双重验证登录', register: '注册账号', tokenRefresh: '刷新登录会话',
+        sessionBindingMismatch: '会话安全信息不匹配', stepUpVerify: '验证敏感操作', auditLogClear: '清理全部操作日志'
+      }
     }
   }
 }

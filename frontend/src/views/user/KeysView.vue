@@ -2,7 +2,7 @@
   <AppLayout>
     <TablePageLayout>
       <template #filters>
-        <div class="flex flex-col gap-3">
+        <div class="screen-toolbar flex flex-col gap-3">
           <div class="flex flex-wrap items-center gap-3">
             <SearchInput
               v-model="filterSearch"
@@ -32,7 +32,13 @@
       </template>
 
       <template #actions>
-        <div class="flex justify-end gap-3">
+        <header class="screen-header">
+          <div class="screen-header__copy">
+            <p class="screen-header__eyebrow">{{ t('nav.apiKeys') }}</p>
+            <h1 class="screen-header__title">{{ t('keys.title') }}</h1>
+            <p class="screen-header__description">{{ t('keys.description') }}</p>
+          </div>
+          <div class="screen-header__actions">
           <button
             @click="loadApiKeys"
             :disabled="loading"
@@ -54,13 +60,13 @@
             </button>
             <div
               v-if="showColumnDropdown"
-              class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
+              class="screen-menu right-0 top-full mt-2 w-52"
             >
               <button
                 v-for="col in toggleableColumns"
                 :key="col.key"
                 @click="toggleColumn(col.key)"
-                class="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+                class="screen-menu__item"
               >
                 <span>{{ col.label }}</span>
                 <Icon
@@ -77,7 +83,8 @@
             <Icon name="plus" size="md" class="mr-2" />
             {{ t('keys.createKey') }}
           </button>
-        </div>
+          </div>
+        </header>
       </template>
 
       <template #table>
@@ -192,13 +199,13 @@
               <div class="flex items-center gap-1.5">
                 <span class="text-gray-500 dark:text-gray-400">{{ t('keys.today') }}:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
-                  ${{ (usageStats[row.id]?.today_actual_cost ?? 0).toFixed(4) }}
+                  {{ formatCurrency(usageStats[row.id]?.today_actual_cost ?? 0) }}
                 </span>
               </div>
               <div class="mt-0.5 flex items-center gap-1.5">
                 <span class="text-gray-500 dark:text-gray-400">{{ t('keys.total') }}:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
-                  ${{ (usageStats[row.id]?.total_actual_cost ?? 0).toFixed(4) }}
+                  {{ formatCurrency(usageStats[row.id]?.total_actual_cost ?? 0) }}
                 </span>
               </div>
               <!-- Quota progress (if quota is set) -->
@@ -211,7 +218,7 @@
                     row.quota_used >= row.quota * 0.8 ? 'text-yellow-500' :
                     'text-gray-900 dark:text-white'
                   ]">
-                    ${{ row.quota_used?.toFixed(2) || '0.00' }} / ${{ row.quota?.toFixed(2) }}
+                    {{ formatCurrency(row.quota_used || 0) }} / {{ formatCurrency(row.quota) }}
                   </span>
                 </div>
                 <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
@@ -241,7 +248,7 @@
                     row.usage_5h >= row.rate_limit_5h * 0.8 ? 'text-yellow-500' :
                     'text-gray-700 dark:text-gray-300'
                   ]">
-                    ${{ row.usage_5h?.toFixed(2) || '0.00' }}/${{ row.rate_limit_5h?.toFixed(2) }}
+                    {{ formatCurrency(row.usage_5h || 0) }}/{{ formatCurrency(row.rate_limit_5h) }}
                   </span>
                 </div>
                 <div class="h-1 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
@@ -269,7 +276,7 @@
                     row.usage_1d >= row.rate_limit_1d * 0.8 ? 'text-yellow-500' :
                     'text-gray-700 dark:text-gray-300'
                   ]">
-                    ${{ row.usage_1d?.toFixed(2) || '0.00' }}/${{ row.rate_limit_1d?.toFixed(2) }}
+                    {{ formatCurrency(row.usage_1d || 0) }}/{{ formatCurrency(row.rate_limit_1d) }}
                   </span>
                 </div>
                 <div class="h-1 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
@@ -297,7 +304,7 @@
                     row.usage_7d >= row.rate_limit_7d * 0.8 ? 'text-yellow-500' :
                     'text-gray-700 dark:text-gray-300'
                   ]">
-                    ${{ row.usage_7d?.toFixed(2) || '0.00' }}/${{ row.rate_limit_7d?.toFixed(2) }}
+                    {{ formatCurrency(row.usage_7d || 0) }}/{{ formatCurrency(row.rate_limit_7d) }}
                   </span>
                 </div>
                 <div class="h-1 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
@@ -622,14 +629,14 @@
           <div class="space-y-4">
             <div>
               <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">{{ currencyUnit }}</span>
                 <input
                   v-model.number="formData.quota"
                   type="number"
                   step="0.01"
                   min="0"
                   class="input pl-7"
-                  :placeholder="t('keys.quotaAmountPlaceholder')"
+                  :placeholder="t('keys.quotaAmountPlaceholder', { currency: currencyUnit })"
                 />
               </div>
               <p class="input-hint">{{ t('keys.quotaAmountHint') }}</p>
@@ -641,11 +648,11 @@
               <div class="flex items-center gap-2">
                 <div class="flex-1 rounded-lg bg-gray-100 px-3 py-2 dark:bg-dark-700">
                   <span class="font-medium text-gray-900 dark:text-white">
-                    ${{ selectedKey.quota_used?.toFixed(4) || '0.0000' }}
+                    {{ formatCurrency(selectedKey.quota_used || 0) }}
                   </span>
                   <span class="mx-2 text-gray-400">/</span>
                   <span class="text-gray-500 dark:text-gray-400">
-                    ${{ selectedKey.quota?.toFixed(2) || '0.00' }}
+                    {{ formatCurrency(selectedKey.quota) }}
                   </span>
                 </div>
                 <button
@@ -686,9 +693,9 @@
             <p class="input-hint -mt-2">{{ t('keys.rateLimitHint') }}</p>
             <!-- 5-Hour Limit -->
             <div>
-              <label class="input-label">{{ t('keys.rateLimit5h') }}</label>
+              <label class="input-label">{{ t('keys.rateLimit5h', { currency: currencyUnit }) }}</label>
               <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">{{ currencyUnit }}</span>
                 <input
                   v-model.number="formData.rate_limit_5h"
                   type="number"
@@ -708,11 +715,11 @@
                       selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'text-yellow-500' :
                       'text-gray-900 dark:text-white'
                     ]">
-                      ${{ selectedKey.usage_5h?.toFixed(4) || '0.0000' }}
+                      {{ formatCurrency(selectedKey.usage_5h || 0) }}
                     </span>
                     <span class="mx-2 text-gray-400">/</span>
                     <span class="text-gray-500 dark:text-gray-400">
-                      ${{ selectedKey.rate_limit_5h?.toFixed(2) || '0.00' }}
+                      {{ formatCurrency(selectedKey.rate_limit_5h) }}
                     </span>
                   </div>
                 </div>
@@ -732,9 +739,9 @@
 
             <!-- Daily Limit -->
             <div>
-              <label class="input-label">{{ t('keys.rateLimit1d') }}</label>
+              <label class="input-label">{{ t('keys.rateLimit1d', { currency: currencyUnit }) }}</label>
               <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">{{ currencyUnit }}</span>
                 <input
                   v-model.number="formData.rate_limit_1d"
                   type="number"
@@ -754,11 +761,11 @@
                       selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'text-yellow-500' :
                       'text-gray-900 dark:text-white'
                     ]">
-                      ${{ selectedKey.usage_1d?.toFixed(4) || '0.0000' }}
+                      {{ formatCurrency(selectedKey.usage_1d || 0) }}
                     </span>
                     <span class="mx-2 text-gray-400">/</span>
                     <span class="text-gray-500 dark:text-gray-400">
-                      ${{ selectedKey.rate_limit_1d?.toFixed(2) || '0.00' }}
+                      {{ formatCurrency(selectedKey.rate_limit_1d) }}
                     </span>
                   </div>
                 </div>
@@ -778,9 +785,9 @@
 
             <!-- 7-Day Limit -->
             <div>
-              <label class="input-label">{{ t('keys.rateLimit7d') }}</label>
+              <label class="input-label">{{ t('keys.rateLimit7d', { currency: currencyUnit }) }}</label>
               <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">{{ currencyUnit }}</span>
                 <input
                   v-model.number="formData.rate_limit_7d"
                   type="number"
@@ -800,11 +807,11 @@
                       selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'text-yellow-500' :
                       'text-gray-900 dark:text-white'
                     ]">
-                      ${{ selectedKey.usage_7d?.toFixed(4) || '0.0000' }}
+                      {{ formatCurrency(selectedKey.usage_7d || 0) }}
                     </span>
                     <span class="mx-2 text-gray-400">/</span>
                     <span class="text-gray-500 dark:text-gray-400">
-                      ${{ selectedKey.rate_limit_7d?.toFixed(2) || '0.00' }}
+                      {{ formatCurrency(selectedKey.rate_limit_7d) }}
                     </span>
                   </div>
                 </div>
@@ -1125,6 +1132,7 @@
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 
 const { t } = useI18n()
+const currencyUnit = getCurrencySymbol() || getCurrencyName()
 import { keysAPI, authAPI, usageAPI, userGroupsAPI } from '@/api'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import TablePageLayout from '@/components/layout/TablePageLayout.vue'
@@ -1143,7 +1151,8 @@ import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 	import type { ApiKey, Group, PublicSettings, SubscriptionType, GroupPlatform, UpdateApiKeyRequest } from '@/types'
 import type { Column } from '@/components/common/types'
 import type { BatchApiKeyUsageStats } from '@/api/usage'
-import { formatDateTime } from '@/utils/format'
+import { formatCurrency, formatDateTime } from '@/utils/format'
+import { getCurrencyName, getCurrencySymbol } from '@/utils/currency'
 import { maskApiKey } from '@/utils/maskApiKey'
 import {
   buildCcSwitchImportDeeplink,
@@ -1895,7 +1904,7 @@ const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
     },
     extractor: function(response) {
       const remaining = response?.remaining ?? response?.quota?.remaining ?? response?.balance;
-      const unit = response?.unit ?? response?.quota?.unit ?? "USD";
+      const unit = response?.unit ?? response?.quota?.unit ?? "${currencyUnit}";
       return {
         isValid: response?.is_active ?? response?.isValid ?? true,
         remaining,

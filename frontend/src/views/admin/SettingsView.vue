@@ -1,6 +1,13 @@
 <template>
   <AppLayout>
-    <div class="mx-auto max-w-6xl space-y-6">
+    <div class="settings-page mx-auto max-w-7xl space-y-6">
+      <header class="settings-page-header">
+        <div>
+          <p>{{ t('nav.settings') }}</p>
+          <h1>{{ t('admin.settings.title') }}</h1>
+        </div>
+        <span><Icon name="cog" size="sm" /> {{ settingsTabs.length }} {{ t('common.sections', 'sections') }}</span>
+      </header>
       <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center py-12">
         <div
@@ -9,9 +16,13 @@
       </div>
 
       <!-- Settings Form -->
-      <form v-else @submit.prevent="saveSettings" class="space-y-6" novalidate>
+      <form v-else @submit.prevent="saveSettings" class="settings-layout" novalidate>
         <!-- Tab Navigation -->
-        <div class="settings-tabs-shell">
+        <aside class="settings-tabs-shell">
+          <div class="settings-sidebar-heading">
+            <strong>{{ t('admin.settings.title') }}</strong>
+            <small>{{ t('common.selectOption') }}</small>
+          </div>
           <nav
             class="settings-tabs-scroll"
             role="tablist"
@@ -42,7 +53,7 @@
               </button>
             </div>
           </nav>
-        </div>
+        </aside>
 
         <!-- Tab: Security — Admin API Key -->
         <div v-show="activeTab === 'security'" class="space-y-6">
@@ -1428,13 +1439,13 @@
                   }}
                 </p>
                 <div
-                  class="mt-3 rounded-lg border border-gray-300 bg-white p-2 dark:border-dark-500 dark:bg-dark-700"
+                  class="settings-token-input mt-3 rounded-lg border border-gray-300 bg-white p-2 dark:border-dark-500 dark:bg-dark-700"
                 >
                   <div class="flex flex-wrap items-center gap-2">
                     <span
                       v-for="suffix in registrationEmailSuffixWhitelistTags"
                       :key="suffix"
-                      class="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs font-mono text-gray-700 dark:bg-dark-600 dark:text-gray-200"
+                      class="settings-token-input__tag inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs font-mono text-gray-700 dark:bg-dark-600 dark:text-gray-200"
                     >
                       <span>{{ suffix }}</span>
                       <button
@@ -3840,6 +3851,39 @@
                   />
                   <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
                     {{ t("admin.settings.defaults.defaultUserRpmLimitHint") }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ t("admin.settings.site.currencySymbol") }}
+                  </label>
+                  <input
+                    v-model="form.currency_symbol"
+                    type="text"
+                    maxlength="16"
+                    class="input"
+                    :placeholder="t('admin.settings.site.currencySymbolPlaceholder')"
+                  />
+                  <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    {{ t("admin.settings.site.currencySymbolHint") }}
+                  </p>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ t("admin.settings.site.currencyName") }}
+                  </label>
+                  <input
+                    v-model="form.currency_name"
+                    type="text"
+                    maxlength="32"
+                    class="input"
+                    :placeholder="t('admin.settings.site.currencyNamePlaceholder')"
+                  />
+                  <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    {{ t("admin.settings.site.currencyNameHint") }}
                   </p>
                 </div>
               </div>
@@ -6741,20 +6785,17 @@
 	              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 	                <div>
 	                  <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-	                    {{ localText("登录条款确认", "Login agreement") }}
+	                    {{ t("admin.settings.agreement.title") }}
 	                  </h2>
 	                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 	                    {{
-	                      localText(
-	                        "控制登录页是否要求用户先阅读并同意服务条款、隐私政策或其他 Markdown 文档。",
-	                        "Control whether the login page requires users to accept Markdown policy documents first.",
-	                      )
+	                      t("admin.settings.agreement.description")
 	                    }}
 	                  </p>
 	                </div>
 	                <div class="flex items-center gap-3">
 	                  <span class="text-sm text-gray-600 dark:text-gray-300">
-	                    {{ form.login_agreement_enabled ? localText("已启用", "Enabled") : localText("未启用", "Disabled") }}
+	                    {{ form.login_agreement_enabled ? t("admin.settings.agreement.enabled") : t("admin.settings.agreement.disabled") }}
 	                  </span>
 	                  <Toggle v-model="form.login_agreement_enabled" />
 	                </div>
@@ -6765,7 +6806,7 @@
 	              <div class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_220px]">
 	                <div>
 	                  <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-	                    {{ localText("展示形式", "Display mode") }}
+	                    {{ t("admin.settings.agreement.displayMode") }}
 	                  </label>
 	                  <div class="grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1 dark:bg-dark-700">
                     <button
@@ -6779,7 +6820,7 @@
                       @click="form.login_agreement_mode = 'modal'"
                     >
                       <Icon name="shield" size="sm" />
-                      {{ localText("弹窗", "Modal") }}
+                      {{ t("admin.settings.agreement.modal") }}
                     </button>
                     <button
                       type="button"
@@ -6792,21 +6833,21 @@
                       @click="form.login_agreement_mode = 'checkbox'"
                     >
                       <Icon name="checkCircle" size="sm" />
-                      {{ localText("复选框", "Checkbox") }}
+                      {{ t("admin.settings.agreement.checkbox") }}
                     </button>
                   </div>
                   <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
                     {{
                       form.login_agreement_mode === "checkbox"
-                        ? localText("复选框会显示在登录按钮下方，未勾选前所有登录入口禁用。", "The checkbox appears below the login button and gates all login actions.")
-                        : localText("弹窗会在登录页打开，用户拒绝后所有登录入口保持禁用。", "The modal opens on the login page and gates all login actions until accepted.")
+                        ? t("admin.settings.agreement.checkboxHint")
+                        : t("admin.settings.agreement.modalHint")
                     }}
                   </p>
                 </div>
 
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {{ localText("条款更新日期", "Updated date") }}
+                    {{ t("admin.settings.agreement.updatedAt") }}
                   </label>
                   <input
                     v-model="form.login_agreement_updated_at"
@@ -6814,7 +6855,7 @@
                     class="input"
                   />
                   <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                    {{ localText("日期或文档内容变化后，用户需要重新同意。", "Changing the date or content requires fresh consent.") }}
+                    {{ t("admin.settings.agreement.updatedAtHint") }}
                   </p>
                 </div>
               </div>
@@ -6823,14 +6864,11 @@
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ localText("协议文档", "Agreement documents") }}
+                      {{ t("admin.settings.agreement.documentsTitle") }}
                     </h3>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       {{
-                        localText(
-                          "文档名称可自定义，内容按 Markdown 保存。可参考：服务条款、使用政策、支持的国家和地区、服务特定条款。",
-                          "Document titles are customizable and content is saved as Markdown.",
-                        )
+                        t("admin.settings.agreement.documentsDescription")
                       }}
                     </p>
                   </div>
@@ -6840,7 +6878,7 @@
                     @click="addLoginAgreementDocument"
                   >
                     <Icon name="plus" size="sm" />
-                    {{ localText("添加文档", "Add document") }}
+                    {{ t("admin.settings.agreement.addDocument") }}
                   </button>
                 </div>
 
@@ -6868,7 +6906,7 @@
                         </span>
                         <div class="min-w-0">
                           <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                            {{ doc.title || localText("未命名文档", "Untitled document") }}
+                            {{ doc.title || t("admin.settings.agreement.untitledDocument") }}
                           </p>
                           <p class="truncate text-xs text-gray-500 dark:text-gray-400">
                             {{ loginAgreementRoutePath(doc, index) }}
@@ -6891,18 +6929,18 @@
                     <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       <div>
                         <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                          {{ localText("文档名称", "Document title") }}
+                          {{ t("admin.settings.agreement.documentTitle") }}
                         </label>
                         <input
                           v-model="doc.title"
                           type="text"
                           class="input text-sm"
-                          :placeholder="localText('例如：服务条款', 'Example: Terms of Service')"
+                          :placeholder="t('admin.settings.agreement.documentTitlePlaceholder')"
                         />
                       </div>
                       <div>
                         <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                          {{ localText("路由标识", "Route slug") }}
+                          {{ t("admin.settings.agreement.routeSlug") }}
                         </label>
                         <div class="flex overflow-hidden rounded-lg border border-gray-300 bg-white focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 dark:border-dark-600 dark:bg-dark-900">
                           <span class="inline-flex flex-shrink-0 items-center border-r border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 dark:border-dark-700 dark:bg-dark-800 dark:text-dark-400">
@@ -6919,13 +6957,13 @@
                     </div>
                     <div class="mt-3">
                       <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                        {{ localText("Markdown 内容", "Markdown content") }}
+                        {{ t("admin.settings.agreement.markdownContent") }}
                       </label>
                         <textarea
                           v-model="doc.content_md"
                           rows="8"
                           class="input font-mono text-sm"
-                          :placeholder="localText('在这里填写正式 Markdown 内容。', 'Write the final Markdown content here.')"
+                          :placeholder="t('admin.settings.agreement.markdownPlaceholder')"
                         ></textarea>
                     </div>
                   </div>
@@ -8943,22 +8981,22 @@ function defaultLoginAgreementDocuments(): LoginAgreementDocument[] {
   return [
     {
       id: "terms",
-      title: localText("服务条款", "Terms of Service"),
+      title: t("admin.settings.agreement.defaults.terms"),
       content_md: "",
     },
     {
       id: "usage-policy",
-      title: localText("使用政策", "Usage Policy"),
+      title: t("admin.settings.agreement.defaults.usagePolicy"),
       content_md: "",
     },
     {
       id: "supported-regions",
-      title: localText("支持的国家和地区", "Supported Countries and Regions"),
+      title: t("admin.settings.agreement.defaults.supportedRegions"),
       content_md: "",
     },
     {
       id: "service-specific-terms",
-      title: localText("服务特定条款", "Service-Specific Terms"),
+      title: t("admin.settings.agreement.defaults.serviceSpecificTerms"),
       content_md: "",
     },
   ];
@@ -9450,6 +9488,8 @@ const form = reactive<SettingsForm>({
   site_name: "Sub2API",
   site_logo: "",
   site_subtitle: "Subscription to API Conversion Platform",
+  currency_symbol: "$",
+  currency_name: "USD",
   api_base_url: "",
   contact_info: "",
   doc_url: "",
@@ -11075,6 +11115,8 @@ async function saveSettings() {
       site_name: form.site_name,
       site_logo: form.site_logo,
       site_subtitle: form.site_subtitle,
+      currency_symbol: form.currency_symbol,
+      currency_name: form.currency_name,
       api_base_url: form.api_base_url,
       contact_info: form.contact_info,
       doc_url: form.doc_url,
@@ -12804,16 +12846,32 @@ watch(
 }
 
 /* ============ 系统设置 Tab 导航 ============ */
+.settings-page { overscroll-behavior-y:contain; }
+.settings-page-header { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; }.settings-page-header p { margin:0 0 5px; color:#276b53; font-size:10px; font-weight:800; text-transform:uppercase; }.settings-page-header h1 { margin:0; font-size:28px; font-weight:760; }.settings-page-header > span { display:flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid var(--line); border-radius:9px; background:color-mix(in srgb,var(--surface) 76%,transparent); color:#7d8799; font-size:10px; backdrop-filter:blur(12px); }
+
+.settings-layout { display:grid; grid-template-columns:230px minmax(0,1fr); align-items:start; gap:20px; }
+.settings-layout > :not(.settings-tabs-shell) { grid-column:2; min-width:0; animation:settings-panel-in .24s ease both; }
 .settings-tabs-shell {
-  @apply sticky z-20 -mx-1 rounded-2xl border border-white/80 bg-white/90 p-1.5 backdrop-blur-xl;
-  top: 4.75rem;
-  box-shadow:
-    0 12px 28px rgb(15 23 42 / 0.07),
-    0 1px 0 rgb(255 255 255 / 0.9) inset;
+  position:sticky;
+  top:5.5rem;
+  grid-column:1;
+  grid-row:1;
+  z-index:20;
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--surface) 84%,transparent);
+  box-shadow:var(--shadow-panel);
+  backdrop-filter:blur(18px);
 }
 
+.settings-sidebar-heading { padding:10px 10px 12px; border-bottom:1px solid var(--line); }.settings-sidebar-heading strong,.settings-sidebar-heading small { display:block; }.settings-sidebar-heading strong { color:var(--ink); font-size:12px; }.settings-sidebar-heading small { margin-top:3px; color:#9099aa; font-size:9px; }
+
 .settings-tabs-scroll {
-  @apply overflow-x-auto;
+  max-height:calc(100vh - 9rem);
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -12823,31 +12881,18 @@ watch(
 }
 
 .settings-tabs {
-  @apply flex min-w-max items-center gap-1;
+  @apply flex flex-col gap-1;
+  padding-top:7px;
 }
 
 .settings-tab {
-  @apply relative isolate flex h-10 min-w-[6.75rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-transparent px-3 text-sm font-medium text-gray-600 outline-none transition-colors duration-200 ease-out dark:text-gray-300;
-}
-
-@media (min-width: 768px) {
-  .settings-tabs {
-    @apply min-w-full;
-  }
-
-  .settings-tab {
-    @apply min-w-0 flex-1 basis-0 overflow-hidden px-2 text-[13px];
-  }
-
-  .settings-tab-icon {
-    @apply h-6 w-6;
-  }
+  @apply relative isolate flex min-h-10 w-full items-center justify-start gap-2 whitespace-nowrap rounded-lg border border-transparent px-2.5 text-sm font-semibold text-gray-600 outline-none transition-all duration-200 ease-out dark:text-gray-300;
 }
 
 .settings-tab::before {
-  @apply absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity duration-200;
+  @apply absolute inset-0 -z-10 rounded-lg opacity-0 transition-opacity duration-200;
   content: "";
-  background: linear-gradient(135deg, rgb(248 250 252 / 0.95), rgb(241 245 249 / 0.8));
+  background:#f0f7f3;
 }
 
 .settings-tab:hover::before,
@@ -12860,10 +12905,8 @@ watch(
 }
 
 .settings-tab-active {
-  @apply border-primary-200/80 bg-white text-primary-700 shadow-sm dark:border-primary-400/30 dark:bg-dark-700/95 dark:text-primary-200;
-  box-shadow:
-    0 8px 18px rgb(15 23 42 / 0.08),
-    0 1px 0 rgb(255 255 255 / 0.92) inset;
+  @apply border-primary-200/80 bg-primary-50 text-primary-700 dark:border-primary-400/30 dark:bg-primary-900/20 dark:text-primary-200;
+  box-shadow:0 4px 12px rgba(39,107,83,.08);
 }
 
 .settings-tab-active::before {
@@ -12871,14 +12914,14 @@ watch(
 }
 
 .settings-tab-active::after {
-  position: absolute;
-  right: 0.75rem;
-  bottom: 0.25rem;
-  left: 0.75rem;
-  height: 2px;
-  border-radius: 9999px;
+  position:absolute;
+  top:.55rem;
+  bottom:.55rem;
+  left:-.5rem;
+  width:2px;
+  border-radius:2px;
   content: "";
-  background: linear-gradient(90deg, #14b8a6, #0ea5e9);
+  background:#276b53;
 }
 
 .settings-tab-icon {
@@ -12897,6 +12940,32 @@ watch(
 .settings-tab-label {
   @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap leading-none;
 }
+
+.settings-token-input { border-color:color-mix(in srgb,var(--line) 88%,transparent); border-radius:12px; background:color-mix(in srgb,var(--surface) 92%,#f8f2d8 8%); box-shadow:0 1px 0 rgba(255,255,255,.72) inset,0 7px 20px rgba(52,61,49,.045); transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease; }
+.settings-token-input:focus-within { border-color:rgba(39,107,83,.42); box-shadow:0 0 0 3px rgba(39,107,83,.1),0 8px 22px rgba(52,61,49,.06); transform:translateY(-1px); }
+.settings-token-input__tag { min-height:28px; border:1px solid rgba(39,107,83,.12); border-radius:8px; background:#eef5ef; color:#315b4b; animation:settings-token-enter .2s cubic-bezier(.22,1,.36,1) both; }
+.dark .settings-token-input { background:rgba(255,255,255,.025); box-shadow:0 1px 0 rgba(255,255,255,.04) inset; }
+.dark .settings-token-input__tag { border-color:rgba(139,195,167,.15); background:rgba(39,107,83,.18); color:#b9d8c8; }
+
+@keyframes settings-panel-in { from { opacity:0; transform:translateY(5px) } to { opacity:1; transform:none } }
+@keyframes settings-token-enter { from { opacity:0; transform:translateY(3px) scale(.97) } to { opacity:1; transform:none } }
+
+@media (max-width: 900px) {
+  .settings-layout { display:flex; flex-direction:column; gap:16px; }
+  .settings-layout > :not(.settings-tabs-shell) { width:100%; }
+  .settings-tabs-shell { position:sticky; top:4.5rem; width:100%; padding:6px; }
+  .settings-tabs-scroll { max-height:none; overflow-x:auto; overflow-y:hidden; }
+  .settings-sidebar-heading { display:none; }
+  .settings-tabs { min-width:max-content; flex-direction:row; padding-top:0; }
+  .settings-tab { width:auto; min-width:7rem; justify-content:center; }
+  .settings-tab-active::after { top:auto; right:.75rem; bottom:-.4rem; left:.75rem; width:auto; height:2px; }
+  .settings-page-header > span { display:none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-token-input__tag { animation:none; }
+  .settings-token-input { transition:none; }
+}
 </style>
 
 <style>
@@ -12904,15 +12973,15 @@ watch(
    because Vue's scoped-CSS compiler was dropping the `:global(.dark) ...`
    rules in the production build, leaving inactive tabs unreadable on dark. */
 .dark .settings-tabs-shell {
-  border-color: rgb(51 65 85 / 0.65);
-  background: rgb(15 23 42 / 0.86);
+  border-color:var(--line);
+  background:color-mix(in srgb,var(--surface) 86%,transparent);
   box-shadow:
     0 16px 36px rgb(0 0 0 / 0.28),
     0 1px 0 rgb(255 255 255 / 0.06) inset;
 }
 
 .dark .settings-tab::before {
-  background: linear-gradient(135deg, rgb(30 41 59 / 0.9), rgb(51 65 85 / 0.62));
+  background:rgba(39,107,83,.12);
 }
 
 .dark .settings-tab-active {

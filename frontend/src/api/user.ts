@@ -194,6 +194,16 @@ export async function getMyPlatformQuotas(): Promise<PlatformQuotasResponse> {
   return data
 }
 
+export interface ExpiringBalanceCredit {
+  remaining_amount: number
+  expires_at: string
+}
+
+export async function getBalanceExpiries(): Promise<{ credits: ExpiringBalanceCredit[] }> {
+  const { data } = await apiClient.get<{ credits: ExpiringBalanceCredit[] }>('/user/balance-expiries')
+  return data
+}
+
 export const userAPI = {
   getProfile,
   updateProfile,
@@ -210,6 +220,7 @@ export const userAPI = {
   getAffiliateDetail,
   transferAffiliateQuota,
   getMyPlatformQuotas,
+  getBalanceExpiries,
 }
 
 export default userAPI

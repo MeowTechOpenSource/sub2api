@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import PaymentQRDialog from '../PaymentQRDialog.vue'
+import { configureCurrencyDisplay } from '@/utils/currency'
 
 const pollOrderStatus = vi.hoisted(() => vi.fn())
 const cancelOrder = vi.hoisted(() => vi.fn())
@@ -61,6 +62,7 @@ const paidOrder = {
 
 describe('PaymentQRDialog currency display', () => {
   beforeEach(() => {
+    configureCurrencyDisplay({ symbol: 'MAI$', name: 'credits' })
     vi.useFakeTimers()
     pollOrderStatus.mockReset().mockResolvedValue(paidOrder)
     cancelOrder.mockReset()
@@ -73,7 +75,7 @@ describe('PaymentQRDialog currency display', () => {
     vi.useRealTimers()
   })
 
-  it('uses order currency for pay_amount and USD for credited amount', async () => {
+  it('uses the configured display currency for user-facing amounts', async () => {
     const wrapper = mount(PaymentQRDialog, {
       props: {
         show: false,
@@ -99,7 +101,7 @@ describe('PaymentQRDialog currency display', () => {
     await flushPromises()
 
     expect(pollOrderStatus).toHaveBeenCalledWith(42)
-    expect(wrapper.text()).toContain('$100.00')
-    expect(wrapper.text()).toContain('¥108.00')
+    expect(wrapper.text()).toContain('MAI$100.00')
+    expect(wrapper.text()).toContain('MAI$108.00')
   })
 })

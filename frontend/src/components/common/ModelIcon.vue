@@ -11,9 +11,7 @@
   >
     <path v-for="(p, idx) in iconInfo.paths" :key="idx" :d="p" :fill="iconInfo.color" />
   </svg>
-  <span v-else class="model-icon-fallback" :style="{ width: size, height: size, fontSize: `calc(${size} * 0.5)` }">
-    {{ fallbackText }}
-  </span>
+  <span v-else class="model-icon-fallback" :data-letter="fallbackText" :style="{ width: size, height: size, fontSize: `calc(${size} * 0.5)` }"></span>
 </template>
 
 <script setup lang="ts">
@@ -270,9 +268,12 @@ const iconInfo = computed(() => iconKey.value ? iconData[iconKey.value] : null)
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #456f5d;
   color: white;
   font-weight: 600;
   flex-shrink: 0;
+}
+.model-icon-fallback::before {
+  content: attr(data-letter);
 }
 </style>

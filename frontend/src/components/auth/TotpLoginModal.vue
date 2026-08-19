@@ -1,29 +1,26 @@
 <template>
-  <div class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex min-h-full items-center justify-center p-4">
-      <div class="fixed inset-0 bg-black/50 transition-opacity"></div>
-
-      <div class="relative w-full max-w-md transform rounded-xl bg-white p-6 shadow-xl transition-all dark:bg-dark-800">
+  <Teleport to="body">
+    <Transition name="auth-dialog">
+      <div class="auth-dialog-backdrop" @click.self="!verifying && emit('cancel')">
+        <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="totp-dialog-title">
         <!-- Header -->
-        <div class="mb-6 text-center">
-          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-            <svg class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-            </svg>
-          </div>
-          <h3 class="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
+        <div class="auth-dialog__header">
+          <div class="auth-dialog__icon"><Icon name="shield" size="md" /></div>
+          <div>
+          <h3 id="totp-dialog-title">
             {{ t('profile.totp.loginTitle') }}
           </h3>
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p>
             {{ t('profile.totp.loginHint') }}
           </p>
-          <p v-if="userEmailMasked" class="mt-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <strong v-if="userEmailMasked">
             {{ userEmailMasked }}
-          </p>
+          </strong>
+          </div>
         </div>
 
         <!-- Code Input -->
-        <div class="mb-6">
+        <div class="auth-dialog__body">
           <!-- Hidden input for password manager autofill (autocomplete="one-time-code") -->
           <input
             ref="hiddenOtpInputRef"
@@ -36,7 +33,7 @@
             tabindex="-1"
             @input="handleHiddenOtpInput"
           />
-          <div class="flex justify-center gap-2">
+          <div class="otp-inputs">
             <input
               v-for="(_, index) in 6"
               :key="index"
@@ -46,7 +43,7 @@
               inputmode="numeric"
               pattern="[0-9]"
               autocomplete="off"
-              class="h-12 w-10 rounded-lg border border-gray-300 text-center text-lg font-semibold focus:border-primary-500 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-700"
+              class="otp-cell"
               :disabled="verifying"
               @input="handleCodeInput($event, index)"
               @keydown="handleKeydown($event, index)"
@@ -54,30 +51,27 @@
             />
           </div>
           <!-- Loading indicator -->
-          <div v-if="verifying" class="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
-            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500"></div>
+          <div v-if="verifying" class="otp-verifying">
+            <div class="spinner"></div>
             {{ t('common.verifying') }}
           </div>
         </div>
 
-        <!-- Cancel button only -->
-        <button
-          type="button"
-          class="btn btn-secondary w-full"
-          :disabled="verifying"
-          @click="$emit('cancel')"
-        >
-          {{ t('common.cancel') }}
-        </button>
+        <div class="auth-dialog__footer">
+          <span>{{ t('profile.totp.loginHint') }}</span>
+          <button type="button" class="btn btn-secondary" :disabled="verifying" @click="emit('cancel')">{{ t('common.cancel') }}</button>
+        </div>
       </div>
     </div>
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted } from 'vue'
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
+import Icon from '@/components/icons/Icon.vue'
 
 defineProps<{
   tempToken: string
@@ -205,8 +199,26 @@ const handlePaste = (event: ClipboardEvent) => {
 }
 
 onMounted(() => {
+  document.addEventListener('keydown', handleEscape)
   nextTick(() => {
     inputRefs.value[0]?.focus()
   })
 })
+
+onBeforeUnmount(() => document.removeEventListener('keydown', handleEscape))
+
+function handleEscape(event: KeyboardEvent) {
+  if (event.key === 'Escape' && !verifying.value) emit('cancel')
+}
 </script>
+
+<style scoped>
+.auth-dialog-backdrop { position:fixed; inset:0; z-index:150; display:grid; place-items:center; padding:16px; overflow-y:auto; background:rgba(15,23,42,.58); backdrop-filter:blur(8px); }
+.auth-dialog { width:min(100%,450px); border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:0 30px 80px rgba(15,23,42,.25); overflow:hidden; }.auth-dialog__header { display:flex; align-items:flex-start; gap:13px; padding:20px 20px 18px; border-bottom:1px solid var(--line); }.auth-dialog__icon { width:40px; height:40px; flex:0 0 auto; display:grid; place-items:center; border:1px solid rgba(39,107,83,.14); border-radius:9px; background:#f0f7f3; color:#276b53; }.auth-dialog__header h3 { margin:0; font-size:17px; }.auth-dialog__header p { margin:5px 0 0; color:#7b8496; font-size:11px; line-height:1.5; }.auth-dialog__header strong { display:block; margin-top:4px; color:#465064; font-size:10px; }
+.auth-dialog__body { padding:26px 20px; }.otp-inputs { display:grid; grid-template-columns:repeat(6,44px); justify-content:center; gap:8px; }.otp-cell { width:44px; height:52px; padding:0; border:1px solid var(--line); border-radius:9px; background:var(--surface-muted); color:var(--ink); font-family:var(--font-mono); font-size:20px; font-weight:700; text-align:center; }.otp-cell:focus { border-color:#276b53; background:var(--surface); box-shadow:0 0 0 3px rgba(39,107,83,.13); }.otp-verifying { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px; color:#7b8496; font-size:11px; }
+.auth-dialog__footer { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 20px; border-top:1px solid var(--line); background:var(--surface-muted); }.auth-dialog__footer span { max-width:260px; color:#929aaa; font-size:9px; }.auth-dialog__footer .btn { flex:0 0 auto; padding:8px 13px; }
+.dark .auth-dialog__icon { background:rgba(39,107,83,.13); }.dark .auth-dialog__header strong { color:#cbd5e1; }
+.auth-dialog-enter-active,.auth-dialog-leave-active { transition:opacity .18s ease; }.auth-dialog-enter-active .auth-dialog,.auth-dialog-leave-active .auth-dialog { transition:transform .18s ease,opacity .18s ease; }.auth-dialog-enter-from,.auth-dialog-leave-to { opacity:0; }.auth-dialog-enter-from .auth-dialog,.auth-dialog-leave-to .auth-dialog { opacity:0; transform:translateY(8px) scale(.98); }
+@media(max-width:440px){.otp-inputs{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}.otp-cell{width:100%;height:48px}.auth-dialog__footer span{display:none}.auth-dialog__footer{justify-content:flex-end}}
+@media(prefers-reduced-motion:reduce){.auth-dialog-enter-active,.auth-dialog-leave-active,.auth-dialog-enter-active .auth-dialog,.auth-dialog-leave-active .auth-dialog{transition-duration:1ms}}
+</style>

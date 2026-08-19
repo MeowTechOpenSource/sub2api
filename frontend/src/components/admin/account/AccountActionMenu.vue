@@ -2,10 +2,10 @@
   <Teleport to="body">
     <div v-if="show && position">
       <!-- Backdrop: click anywhere outside to close -->
-      <div class="fixed inset-0 z-[9998]" @click="emit('close')"></div>
+      <div class="fixed inset-0 z-[100000020]" @click="emit('close')"></div>
       <div
-        class="action-menu-content fixed z-[9999] w-52 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 dark:bg-dark-800"
-        :style="{ top: position.top + 'px', left: position.left + 'px' }"
+        class="action-menu-content fixed z-[100000030] w-52 overflow-y-auto overscroll-contain rounded-xl bg-white shadow-lg ring-1 ring-black/5 dark:bg-dark-800"
+        :style="menuStyle"
         @click.stop
       >
         <div class="py-1">
@@ -70,6 +70,14 @@ import type { Account } from '@/types'
 const props = defineProps<{ show: boolean; account: Account | null; position: { top: number; left: number } | null }>()
 const emit = defineEmits(['close', 'test', 'stats', 'schedule', 'duplicate', 'reauth', 'refresh-token', 'recover-state', 'reset-quota', 'set-privacy', 'create-spark-shadow'])
 const { t } = useI18n()
+const menuStyle = computed(() => {
+  if (!props.position) return {}
+  const edge = 8
+  const width = 208
+  const top = Math.max(edge, Math.min(props.position.top, window.innerHeight - 120))
+  const left = Math.max(edge, Math.min(props.position.left, window.innerWidth - width - edge))
+  return { top: `${top}px`, left: `${left}px`, maxHeight: `${Math.max(112, window.innerHeight - top - edge)}px` }
+})
 const canDuplicate = computed(() => {
   if (!props.account || props.account.parent_account_id != null) return false
   return ['apikey', 'upstream', 'bedrock', 'service_account'].includes(props.account.type)

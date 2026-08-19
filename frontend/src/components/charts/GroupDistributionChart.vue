@@ -74,13 +74,13 @@
                   {{ formatTokens(group.total_tokens) }}
                 </td>
                 <td class="py-1.5 text-right text-green-600 dark:text-green-400">
-                  ${{ formatCost(group.actual_cost) }}
+                  {{ formatCostWithCurrency(group.actual_cost) }}
                 </td>
                 <td v-if="showAccountCost" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
-                  ${{ formatCost(group.account_cost) }}
+                  {{ formatCostWithCurrency(group.account_cost) }}
                 </td>
                 <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
-                  ${{ formatCost(group.cost) }}
+                  {{ formatCostWithCurrency(group.cost) }}
                 </td>
               </tr>
               <!-- User breakdown sub-rows -->
@@ -90,6 +90,7 @@
                     :items="breakdownItems"
                     :loading="breakdownLoading"
                     :show-account-cost="showAccountCost"
+                    :use-display-currency="useDisplayCurrency"
                   />
                 </td>
               </tr>
@@ -116,6 +117,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import type { GroupStat, UserBreakdownItem } from '@/types'
 import { getUserBreakdown } from '@/api/admin/dashboard'
+import { decorateDisplayCurrency } from '@/utils/currency'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -133,12 +135,14 @@ const props = withDefaults(defineProps<{
   startDate?: string
   endDate?: string
   filters?: Record<string, any>
+  useDisplayCurrency?: boolean
 }>(), {
   loading: false,
   metric: 'tokens',
   showMetricToggle: false,
   enableBreakdown: true,
   showAccountCost: true,
+  useDisplayCurrency: false,
 })
 
 const emit = defineEmits<{
@@ -149,6 +153,7 @@ const expandedKey = ref<string | null>(null)
 const breakdownItems = ref<UserBreakdownItem[]>([])
 const breakdownLoading = ref(false)
 const showAccountCost = computed(() => props.showAccountCost)
+const useDisplayCurrency = computed(() => props.useDisplayCurrency)
 const distributionColspan = computed(() => showAccountCost.value ? 6 : 5)
 
 const toggleBreakdown = async (type: string, id: number | string) => {
@@ -176,7 +181,7 @@ const toggleBreakdown = async (type: string, id: number | string) => {
 }
 
 const chartColors = [
-  '#3b82f6',
+  '#357f63',
   '#10b981',
   '#f59e0b',
   '#ef4444',
@@ -224,7 +229,7 @@ const doughnutOptions = computed(() => ({
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
           const formattedValue = props.metric === 'actual_cost'
-            ? `$${formatCost(value)}`
+            ? formatCostWithCurrency(value)
             : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`
         }
@@ -263,5 +268,10 @@ const formatCost = (value: number | null | undefined): string => {
     return safeValue.toFixed(3)
   }
   return safeValue.toFixed(4)
+}
+
+const formatCostWithCurrency = (value: number | null | undefined): string => {
+  const formatted = formatCost(value)
+  return props.useDisplayCurrency ? decorateDisplayCurrency(formatted) : `$${formatted}`
 }
 </script>

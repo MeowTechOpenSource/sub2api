@@ -103,9 +103,9 @@
           <div
             v-if="codexAuthMode === 'api-key'"
             data-testid="codex-api-key-restart-notice"
-            class="mt-3 flex items-start gap-2 border-l-2 border-amber-400 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 dark:border-amber-500 dark:bg-amber-950/30 dark:text-amber-200"
+            class="codex-restart-notice"
           >
-            <Icon name="exclamationCircle" size="sm" class="mt-0.5 flex-shrink-0" />
+            <span class="codex-restart-notice__icon"><Icon name="refresh" size="sm" /></span>
             <p>{{ t('keys.useKeyModal.openai.authModeApiKeyRestartNotice') }}</p>
           </div>
         </div>
@@ -1567,3 +1567,10 @@ const copyContent = async (content: string, index: number) => {
   }
 }
 </script>
+
+<style scoped>
+.codex-restart-notice { margin-top:12px; display:flex; align-items:flex-start; gap:10px; padding:11px 12px; border:1px solid rgba(39,107,83,.16); border-radius:9px; background:rgba(39,107,83,.055); color:#355c4d; font-size:11px; line-height:1.65; }
+.codex-restart-notice__icon { width:28px; height:28px; flex:0 0 auto; display:grid; place-items:center; border-radius:7px; background:rgba(39,107,83,.1); color:#276b53; }
+.codex-restart-notice p { margin:2px 0 0; }
+.dark .codex-restart-notice { border-color:rgba(139,195,167,.18); background:rgba(39,107,83,.12); color:#c6d9cf; }.dark .codex-restart-notice__icon{color:#8bc3a7}
+</style>

@@ -3,84 +3,42 @@
     <Transition name="popup-fade">
       <div
         v-if="displayedAnnouncement"
-        class="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-gradient-to-br from-black/70 via-black/60 to-black/70 p-4 pt-[8vh] backdrop-blur-md"
+        class="public-notice-backdrop"
       >
         <div
-          class="w-full max-w-[680px] overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-dark-800 dark:ring-white/10"
+          class="public-notice"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="displayedAnnouncement.title"
+          @pointerdown.stop
           @click.stop
         >
-          <!-- Header with warm gradient -->
-          <div class="relative overflow-hidden border-b border-amber-100/80 bg-gradient-to-br from-amber-50/80 via-orange-50/50 to-yellow-50/30 px-8 py-6 dark:border-dark-700/50 dark:from-amber-900/20 dark:via-orange-900/10 dark:to-yellow-900/5">
-            <!-- Decorative background -->
-            <div class="absolute right-0 top-0 h-full w-64 bg-gradient-to-l from-orange-100/30 to-transparent dark:from-orange-900/20"></div>
-            <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-amber-400/20 to-orange-500/20 blur-3xl"></div>
-            <div class="absolute -left-4 -bottom-4 h-24 w-24 rounded-full bg-gradient-to-tr from-yellow-400/20 to-amber-500/20 blur-2xl"></div>
-
-            <div class="relative z-10">
-              <!-- Icon and badge -->
-              <div class="mb-3 flex items-center gap-2">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30">
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                </div>
-                <span class="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-2.5 py-1 text-xs font-medium text-white shadow-lg shadow-amber-500/30">
-                  <span class="relative flex h-2 w-2">
-                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                    <span class="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-                  </span>
-                  {{ t('announcements.unread') }}
-                </span>
-              </div>
-
-              <!-- Title -->
-              <h2 class="mb-2 text-2xl font-bold leading-tight text-gray-900 dark:text-white">
-                {{ displayedAnnouncement.title }}
-              </h2>
-
-              <!-- Time -->
-              <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <time>{{ formatRelativeWithDateTime(displayedAnnouncement.created_at) }}</time>
+          <header class="public-notice__header">
+            <div class="public-notice__heading">
+              <span class="public-notice__icon"><Icon name="bell" size="md" /></span>
+              <div>
+                <span class="public-notice__label">{{ t('announcements.unread') }}</span>
+                <h2>
+                  {{ displayedAnnouncement.title }}
+                </h2>
               </div>
             </div>
+            <div class="public-notice__time">
+              <Icon name="clock" size="sm" />
+              <time>{{ formatRelativeWithDateTime(displayedAnnouncement.created_at) }}</time>
+            </div>
+          </header>
+
+          <div class="public-notice__body">
+            <div class="markdown-body prose prose-sm max-w-none dark:prose-invert" v-html="renderedContent"></div>
           </div>
 
-          <!-- Body -->
-          <div class="max-h-[50vh] overflow-y-auto bg-white px-8 py-8 dark:bg-dark-800">
-            <div class="relative">
-              <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-gradient-to-b from-amber-500 via-orange-500 to-yellow-500"></div>
-              <div class="pl-6">
-                <div
-                  class="markdown-body prose prose-sm max-w-none dark:prose-invert"
-                  v-html="renderedContent"
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="border-t border-gray-100 bg-gray-50/50 px-8 py-5 dark:border-dark-700 dark:bg-dark-900/30">
-            <div class="flex items-center justify-end">
-              <button
-                @click="handleDismiss"
-                data-testid="announcement-popup-dismiss"
-                class="rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-amber-500/30 transition-all hover:shadow-xl hover:scale-105"
-              >
-                <span class="flex items-center gap-2">
-                  <svg v-if="preview" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <svg v-else class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {{ preview ? t('common.close') : t('announcements.markRead') }}
-                </span>
-              </button>
-            </div>
-          </div>
+          <footer class="public-notice__footer">
+            <button class="btn btn-primary public-notice__action" data-testid="announcement-popup-dismiss" @click="handleDismiss">
+              <Icon :name="preview ? 'x' : 'check'" size="sm" />
+              {{ preview ? t('common.close') : t('announcements.markRead') }}
+            </button>
+          </footer>
         </div>
       </div>
     </Transition>
@@ -94,8 +52,8 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useAnnouncementStore } from '@/stores/announcements'
 import { formatRelativeWithDateTime } from '@/utils/format'
+import Icon from '@/components/icons/Icon.vue'
 import type { Announcement, UserAnnouncement } from '@/types'
-import '@/styles/announcement-markdown.css'
 
 type PreviewAnnouncement = Pick<Announcement | UserAnnouncement, 'title' | 'content' | 'created_at'>
 
@@ -107,9 +65,7 @@ const props = withDefaults(defineProps<{
   preview: false,
 })
 
-const emit = defineEmits<{
-  close: []
-}>()
+const emit = defineEmits<{ close: [] }>()
 
 const { t } = useI18n()
 const announcementStore = useAnnouncementStore()
@@ -137,33 +93,46 @@ function handleDismiss() {
   announcementStore.dismissPopup()
 }
 
-// Manage body overflow — only set, never unset (bell component handles restore)
+let previousBodyOverflow = ''
+
 watch(
   displayedAnnouncement,
   (popup) => {
     if (popup) {
+      if (!previousBodyOverflow) previousBodyOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
-    } else if (props.preview) {
-      document.body.style.overflow = ''
+    } else {
+      document.body.style.overflow = previousBodyOverflow
+      previousBodyOverflow = ''
     }
   },
   { immediate: true },
 )
 
 onBeforeUnmount(() => {
-  if (props.preview) {
-    document.body.style.overflow = ''
-  }
+  document.body.style.overflow = previousBodyOverflow
 })
 </script>
 
 <style scoped>
+.public-notice-backdrop { position:fixed; inset:0; z-index:140; display:grid; place-items:center; padding:20px; overflow-y:auto; background:rgba(25,29,25,.52); backdrop-filter:blur(10px); }
+.public-notice { width:min(640px,100%); max-height:min(760px,calc(100dvh - 40px)); display:flex; flex-direction:column; overflow:hidden; border:1px solid rgba(57,48,28,.14); border-radius:14px; background:rgba(255,253,244,.97); box-shadow:0 28px 76px rgba(32,37,31,.22),0 1px 0 rgba(255,255,255,.9) inset; backdrop-filter:blur(22px); transition:transform .22s cubic-bezier(.22,1,.36,1),opacity .18s ease; }
+.public-notice__header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding:22px 24px; border-bottom:1px solid rgba(57,48,28,.1); }
+.public-notice__heading { min-width:0; display:flex; align-items:flex-start; gap:13px; }
+.public-notice__icon { width:42px; height:42px; flex:0 0 auto; display:grid; place-items:center; border:1px solid rgba(39,107,83,.17); border-radius:10px; background:rgba(39,107,83,.08); color:#276b53; }
+.public-notice__label { display:block; margin:1px 0 4px; color:#276b53; font-size:10px; font-weight:800; text-transform:uppercase; }
+.public-notice h2 { margin:0; overflow-wrap:anywhere; color:#29271f; font-size:20px; font-weight:740; line-height:1.35; }
+.public-notice__time { flex:0 0 auto; display:flex; align-items:center; gap:6px; padding-top:4px; color:#8b846f; font-size:10px; }
+.public-notice__body { min-height:130px; padding:24px; overflow-y:auto; color:#454238; line-height:1.7; overscroll-behavior:contain; }
+.public-notice__footer { display:flex; justify-content:flex-end; padding:14px 20px; border-top:1px solid rgba(57,48,28,.1); background:rgba(247,243,226,.68); }
+.public-notice__action { display:inline-flex; align-items:center; gap:8px; }
+.dark .public-notice { border-color:rgba(255,255,255,.1); background:rgba(29,32,28,.97); }.dark .public-notice h2{color:#f1eddf}.dark .public-notice__header,.dark .public-notice__footer{border-color:rgba(255,255,255,.08)}.dark .public-notice__footer{background:rgba(255,255,255,.025)}.dark .public-notice__body{color:#d8d3c3}
 .popup-fade-enter-active {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity .22s ease;
 }
 
 .popup-fade-leave-active {
-  transition: all 0.2s cubic-bezier(0.4, 0, 1, 1);
+  transition: opacity .16s ease;
 }
 
 .popup-fade-enter-from,
@@ -172,30 +141,32 @@ onBeforeUnmount(() => {
 }
 
 .popup-fade-enter-from > div {
-  transform: scale(0.94) translateY(-12px);
+  transform: scale(.975) translateY(8px);
   opacity: 0;
 }
 
 .popup-fade-leave-to > div {
-  transform: scale(0.96) translateY(-8px);
+  transform: scale(.985) translateY(5px);
   opacity: 0;
 }
 
 /* Scrollbar Styling */
-.overflow-y-auto::-webkit-scrollbar {
+.public-notice__body::-webkit-scrollbar {
   width: 8px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
+.public-notice__body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+.public-notice__body::-webkit-scrollbar-thumb {
+  background:#b7b09d;
   border-radius: 4px;
 }
 
-.dark .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #4b5563, #374151);
+.dark .public-notice__body::-webkit-scrollbar-thumb {
+  background:#5d625a;
 }
+@media(max-width:600px){.public-notice-backdrop{padding:12px}.public-notice{max-height:calc(100dvh - 24px)}.public-notice__header{padding:18px;flex-direction:column;gap:12px}.public-notice__time{padding-left:55px}.public-notice__body{padding:20px 18px}.public-notice__footer{padding:12px 16px}.public-notice__action{width:100%;justify-content:center}}
+@media(prefers-reduced-motion:reduce){.popup-fade-enter-active,.popup-fade-leave-active{transition-duration:1ms}}
 </style>

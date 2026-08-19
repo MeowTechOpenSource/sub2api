@@ -1,6 +1,10 @@
 docs/claude-relay-service/
 .codex
-
+frontend/.pnpm-store/
+frontend/.vite/
+frontend/node_modules/
+frontend/.vite-verify/
+.pnpm-store/
 # ===================
 # Go 后端
 # ===================
@@ -136,6 +140,9 @@ docs/*
 !docs/PAYMENT_CN.md
 !docs/ADMIN_PAYMENT_INTEGRATION_API.md
 !docs/ASYNC_IMAGE_TASKS.md
+!docs/CARPOOL_PORTAL_PRODUCT_SPEC.md
+!docs/CARPOOL_PORTAL_ARCHITECTURE.md
+!docs/CARPOOL_PORTAL_TERRA_EXECUTION_PLAN.md
 !docs/legal/
 !docs/legal/*.md
 .serena/
@@ -146,3 +153,4 @@ output/
 
 # Vitest / Vite cache at repo root
 .vite/
+frontend/.pnpm-store/

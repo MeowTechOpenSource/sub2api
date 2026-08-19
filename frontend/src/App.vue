@@ -138,7 +138,9 @@ onMounted(async () => {
 
 <template>
   <NavigationProgress />
-  <RouterView />
+  <RouterView v-slot="{ Component, route: currentRoute }">
+    <component :is="Component" :key="currentRoute.path" />
+  </RouterView>
   <Toast />
   <AnnouncementPopup />
   <AdminComplianceDialog />

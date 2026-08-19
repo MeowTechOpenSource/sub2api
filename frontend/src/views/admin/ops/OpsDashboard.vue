@@ -10,6 +10,27 @@
 
       <OpsDashboardSkeleton v-if="loading && !hasLoadedOnce" :fullscreen="isFullscreen" />
 
+      <section v-else-if="!opsEnabled" class="ops-disabled-state">
+        <div class="ops-disabled-state__icon">
+          <Icon name="chartBar" size="lg" />
+        </div>
+        <div>
+          <p class="screen-header__eyebrow">{{ t('admin.ops.title') }}</p>
+          <h1>{{ t('admin.settings.opsMonitoring.disabled') }}</h1>
+          <p>{{ t('admin.settings.opsMonitoring.description') }}</p>
+        </div>
+        <div class="ops-disabled-state__actions">
+          <button type="button" class="btn btn-secondary" :disabled="settingsRefreshing" @click="refreshOpsAvailability">
+            <Icon name="refresh" size="sm" :class="settingsRefreshing ? 'animate-spin' : ''" />
+            {{ t('common.refresh') }}
+          </button>
+          <button type="button" class="btn btn-primary" @click="router.push('/admin/settings')">
+            <Icon name="cog" size="sm" />
+            {{ t('nav.settings') }}
+          </button>
+        </div>
+      </section>
+
       <OpsDashboardHeader
         v-else-if="opsEnabled"
         :overview="overview"
@@ -171,6 +192,7 @@ import OpsSystemLogTable from './components/OpsSystemLogTable.vue'
 import OpsRequestDetailsModal, { type OpsRequestDetailsPreset } from './components/OpsRequestDetailsModal.vue'
 import OpsSettingsDialog from './components/OpsSettingsDialog.vue'
 import OpsAlertRulesCard from './components/OpsAlertRulesCard.vue'
+import Icon from '@/components/icons/Icon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -189,6 +211,7 @@ const allowedQueryModes = new Set<QueryMode>(['auto', 'raw', 'preagg'])
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const errorMessage = ref('')
+const settingsRefreshing = ref(false)
 const lastUpdated = ref<Date | null>(new Date())
 
 const timeRange = ref<TimeRange>('1h')
@@ -776,27 +799,44 @@ onMounted(async () => {
   // Fullscreen mode: listen for ESC key
   window.addEventListener('keydown', handleKeydown)
 
-  await adminSettingsStore.fetch()
-  if (!adminSettingsStore.opsMonitoringEnabled) {
-    await router.replace('/admin/settings')
-    return
-  }
+  try {
+    await adminSettingsStore.fetch(true)
+    if (!adminSettingsStore.opsMonitoringEnabled) return
 
-  // Load thresholds configuration
-  loadThresholds()
+    // Load thresholds configuration
+    void loadThresholds()
 
-  // Load auto refresh settings
-  await loadDashboardAdvancedSettings()
-
-  if (opsEnabled.value) {
+    // Load auto refresh settings
+    await loadDashboardAdvancedSettings()
     await fetchData()
-  }
 
-  // Start auto refresh if enabled
-  if (autoRefreshEnabled.value) {
-    resumeCountdown()
+    // Start auto refresh if enabled
+    if (autoRefreshEnabled.value) {
+      resumeCountdown()
+    }
+  } catch (err) {
+    console.error('[OpsDashboard] Failed to initialize', err)
+    errorMessage.value = t('admin.ops.failedToLoadData')
+  } finally {
+    if (loading.value) loading.value = false
+    if (!hasLoadedOnce.value) hasLoadedOnce.value = true
   }
 })
+
+async function refreshOpsAvailability() {
+  settingsRefreshing.value = true
+  try {
+    await adminSettingsStore.fetch(true)
+    if (!opsEnabled.value) return
+
+    loadThresholds()
+    await loadDashboardAdvancedSettings()
+    await fetchData()
+    if (autoRefreshEnabled.value) resumeCountdown()
+  } finally {
+    settingsRefreshing.value = false
+  }
+}
 
 async function loadThresholds() {
   try {
@@ -832,3 +872,26 @@ watch(showSettingsDialog, async (show) => {
   }
 })
 </script>
+
+<style scoped>
+.ops-disabled-state {
+  min-height: min(520px, calc(100vh - 150px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 36px 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: var(--shadow-panel);
+  text-align: center;
+  backdrop-filter: blur(16px);
+}
+.ops-disabled-state__icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 12px; background: #f0f7f3; color: #276b53; }
+.ops-disabled-state h1 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 24px; font-weight: 760; }
+.ops-disabled-state p:not(.screen-header__eyebrow) { max-width: 520px; margin: 7px auto 0; color: #7d8799; font-size: 13px; line-height: 1.65; }
+.ops-disabled-state__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; }
+.dark .ops-disabled-state__icon { background: rgba(39, 107, 83, .14); color: #8bc3a7; }
+</style>

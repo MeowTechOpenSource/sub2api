@@ -3,7 +3,7 @@
     <TablePageLayout>
       <!-- Filters -->
       <template #filters>
-        <div class="card p-4 sm:p-6">
+        <div class="audit-filter-panel card p-4 sm:p-6">
           <div class="flex flex-wrap items-end justify-between gap-4">
             <!-- Left: filter fields -->
             <div class="flex flex-1 flex-wrap items-end gap-4">
@@ -95,15 +95,15 @@
                 {{ row.actor_email || '—' }}
               </div>
               <div class="mt-0.5 truncate text-xs text-gray-400">
-                {{ row.actor_role }}<span v-if="row.auth_method"> · {{ authMethodLabel(row.auth_method) }}</span>
+                {{ actorRoleLabel(row.actor_role) }}<span v-if="row.auth_method"> · {{ authMethodLabel(row.auth_method) }}</span>
               </div>
             </div>
           </template>
 
           <template #cell-action="{ row }">
             <div class="min-w-0 max-w-xs">
-              <div class="truncate font-mono text-sm text-gray-800 dark:text-gray-200" :title="row.action">
-                {{ row.action }}
+              <div class="truncate text-sm font-semibold text-gray-800 dark:text-gray-200" :title="row.action">
+                {{ auditActionLabel(row.action) }}
               </div>
               <div class="mt-0.5 truncate font-mono text-xs text-gray-400" :title="`${row.method} ${row.path}`">
                 {{ row.method }} {{ row.path }}
@@ -176,14 +176,14 @@
 
       <div v-else-if="detail" class="space-y-5 py-2">
         <!-- Hero: action + result at a glance -->
-        <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-5 dark:border-dark-700 dark:bg-dark-900/60">
+        <div class="audit-detail-hero rounded-2xl border border-gray-200 bg-gray-50/60 p-5 dark:border-dark-700 dark:bg-dark-900/60">
           <div class="flex flex-wrap items-center gap-3">
             <span :class="statusBadgeClass(detail.status_code)">
               <span class="h-1.5 w-1.5 rounded-full" :class="statusDotClass(detail.status_code)"></span>
               {{ detail.status_code }} {{ statusText(detail.status_code) }}
             </span>
-            <span class="break-all font-mono text-base font-semibold text-gray-900 dark:text-white">
-              {{ detail.action }}
+            <span class="break-all text-base font-semibold text-gray-900 dark:text-white" :title="detail.action">
+              {{ auditActionLabel(detail.action) }}
             </span>
           </div>
 
@@ -209,17 +209,17 @@
 
         <!-- Actor / auth / source -->
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div class="rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
+          <div class="audit-meta-card rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
             <div class="text-xs font-bold uppercase tracking-wider text-gray-400">
               {{ t('admin.audit.columns.actor') }}
             </div>
             <div class="mt-1 break-all text-sm font-medium text-gray-900 dark:text-white">
               {{ detail.actor_email || '—' }}
             </div>
-            <div class="mt-0.5 text-xs text-gray-400">{{ detail.actor_role }}</div>
+            <div class="mt-0.5 text-xs text-gray-400">{{ actorRoleLabel(detail.actor_role) }}</div>
           </div>
 
-          <div class="rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
+          <div class="audit-meta-card rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
             <div class="text-xs font-bold uppercase tracking-wider text-gray-400">
               {{ t('admin.audit.filters.authMethod') }}
             </div>
@@ -231,7 +231,7 @@
             </div>
           </div>
 
-          <div class="rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
+          <div class="audit-meta-card rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
             <div class="text-xs font-bold uppercase tracking-wider text-gray-400">
               {{ t('admin.audit.columns.clientIp') }}
             </div>
@@ -246,7 +246,7 @@
           <h4 class="mb-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
             {{ t('admin.audit.detail.userAgent') }}
           </h4>
-          <div class="break-all rounded-xl bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-600 dark:bg-dark-900 dark:text-gray-400">
+          <div class="audit-code-panel break-all rounded-xl bg-gray-50 p-3 font-mono text-xs leading-relaxed text-gray-600 dark:bg-dark-900 dark:text-gray-400">
             {{ detail.user_agent || '—' }}
           </div>
         </section>
@@ -256,7 +256,7 @@
           <h4 class="mb-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
             {{ t('admin.audit.detail.requestBody') }}
           </h4>
-          <pre class="max-h-72 overflow-auto rounded-xl bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-600 dark:bg-dark-900 dark:text-gray-400">{{ prettyBody(detail.request_body) }}</pre>
+          <pre class="audit-code-panel max-h-72 overflow-auto rounded-xl bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-600 dark:bg-dark-900 dark:text-gray-400">{{ prettyBody(detail.request_body) }}</pre>
         </section>
 
         <!-- Extra -->
@@ -264,7 +264,7 @@
           <h4 class="mb-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
             {{ t('admin.audit.detail.extra') }}
           </h4>
-          <pre class="max-h-48 overflow-auto rounded-xl bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-600 dark:bg-dark-900 dark:text-gray-400">{{ JSON.stringify(detail.extra, null, 2) }}</pre>
+          <pre class="audit-code-panel max-h-48 overflow-auto rounded-xl bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-600 dark:bg-dark-900 dark:text-gray-400">{{ JSON.stringify(detail.extra, null, 2) }}</pre>
         </section>
       </div>
     </BaseDialog>
@@ -367,7 +367,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { useAppStore } from '@/stores'
 
-const { t } = useI18n()
+const { t, te, locale } = useI18n()
 const appStore = useAppStore()
 
 const loading = ref(false)
@@ -484,8 +484,8 @@ const methodOptions = computed(() => [
 
 const authMethodOptions = computed(() => [
   { value: '', label: t('admin.audit.filters.all') },
-  { value: 'jwt', label: 'JWT' },
-  { value: 'admin_api_key', label: 'Admin API Key' }
+  { value: 'jwt', label: t('admin.audit.values.authMethods.jwt') },
+  { value: 'admin_api_key', label: t('admin.audit.values.authMethods.adminApiKey') }
 ])
 
 const resultOptions = computed(() => [
@@ -497,6 +497,51 @@ const resultOptions = computed(() => [
 function authMethodLabel(method: string): string {
   const found = authMethodOptions.value.find((o) => o.value === method)
   return found && found.value ? found.label : method
+}
+
+const specialAuditActions: Record<string, string> = {
+  'auth.login': 'login',
+  'auth.login.2fa': 'login2fa',
+  'auth.register': 'register',
+  'auth.token.refresh': 'tokenRefresh',
+  'auth.session_binding.mismatch': 'sessionBindingMismatch',
+  'auth.step_up.verify': 'stepUpVerify',
+  'admin.audit_log.clear': 'auditLogClear'
+}
+
+function actorRoleLabel(role: string): string {
+  const normalized = String(role || 'unknown').toLowerCase()
+  const key = `admin.audit.values.roles.${normalized}`
+  return te(key) ? t(key) : role || t('admin.audit.values.roles.unknown')
+}
+
+function humanizeAuditSegment(segment: string): string {
+  return segment
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function auditActionLabel(action: string): string {
+  const special = specialAuditActions[action]
+  if (special) return t(`admin.audit.values.specialActions.${special}`)
+
+  const parts = String(action || '').split('.').filter(Boolean)
+  if (!parts.length) return t('admin.audit.values.unknownAction')
+  if (parts[0] === 'admin' || parts[0] === 'user') parts.shift()
+
+  const verb = parts.pop() || 'unknown'
+  const verbKey = `admin.audit.values.verbs.${verb}`
+  const verbLabel = te(verbKey) ? t(verbKey) : humanizeAuditSegment(verb)
+  const resourceLabel = parts
+    .map((part) => {
+      const resourceKey = `admin.audit.values.resources.${part}`
+      return te(resourceKey) ? t(resourceKey) : humanizeAuditSegment(part)
+    })
+    .join(' / ') || t('admin.audit.values.resources.system')
+
+  return t('admin.audit.values.actionFormat', { verb: verbLabel, resource: resourceLabel })
 }
 
 function toRFC3339(local: string): string | undefined {
@@ -661,7 +706,8 @@ async function submitClear() {
 function formatTime(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleString()
+  const localeCode = locale.value === 'zhTW' ? 'zh-HK' : locale.value === 'zh' ? 'zh-CN' : 'en-US'
+  return d.toLocaleString(localeCode)
 }
 
 function statusText(status: number): string {
@@ -683,3 +729,52 @@ function statusDotClass(status: number): string {
 
 onMounted(fetchLogs)
 </script>
+
+<style scoped>
+.audit-filter-panel,
+.audit-detail-hero,
+.audit-meta-card,
+.audit-code-panel {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition: transform 220ms cubic-bezier(.22, 1, .36, 1), border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.audit-filter-panel:focus-within {
+  border-color: rgba(39, 107, 83, .24);
+  box-shadow: var(--shadow-depth), 0 0 0 3px var(--focus-ring);
+  transform: translate3d(0, -1px, 0);
+}
+
+.audit-detail-hero {
+  animation: audit-detail-enter 320ms cubic-bezier(.22, 1, .36, 1) both;
+  box-shadow: 0 12px 28px rgba(32, 86, 68, .07);
+}
+
+.audit-meta-card {
+  animation: audit-card-enter 300ms cubic-bezier(.22, 1, .36, 1) both;
+  border: 1px solid transparent;
+}
+
+.audit-meta-card:nth-child(2) { animation-delay: 45ms; }
+.audit-meta-card:nth-child(3) { animation-delay: 90ms; }
+
+.audit-meta-card:hover,
+.audit-code-panel:hover {
+  border-color: rgba(39, 107, 83, .18);
+  box-shadow: var(--shadow-depth);
+  transform: translate3d(0, -1px, 0);
+}
+
+.audit-code-panel { border: 1px solid transparent; }
+
+@keyframes audit-detail-enter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes audit-card-enter {
+  from { opacity: 0; transform: translate3d(0, 8px, -6px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+</style>

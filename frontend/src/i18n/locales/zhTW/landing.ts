@@ -1,8 +1,4 @@
 export default {
-  batchImageGuide: {
-    title: '圖片大量生成',
-    description: '一次提交多條提示詞，任務完成後可統一下載圖片結果'
-  },
   // Home Page
   home: {
     viewOnGithub: '在 GitHub 上查看',
@@ -51,7 +47,7 @@ export default {
     },
     features: {
       unifiedGateway: '一鍵接入',
-      unifiedGatewayDesc: '獲取一個 API 金鑰，即可呼叫所有已接入的 AI 模型，無需分別申請。',
+      unifiedGatewayDesc: '取得一個 API 金鑰，即可呼叫所有已接入的 AI 模型，無需分別申請。',
       multiAccount: '穩定可靠',
       multiAccountDesc: '智能調度多個上游用戶，自動切換和負載平衡，告別頻繁報錯。',
       balanceQuota: '用多少付多少',
@@ -186,7 +182,7 @@ export default {
     querySuccess: '查詢成功',
     queryFailed: '查詢失敗',
     queryFailedRetry: '查詢失敗，請稍後重試',
-    noDailyUsage: '暫無按日用量數據',
+    noDailyUsage: '暫無按日用量資料',
   },
 
   // Setup Wizard

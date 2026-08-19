@@ -631,6 +631,9 @@ export default {
       withdrawAmount: 'Withdraw Amount',
       withdrawAll: 'All',
       currentBalance: 'Current Balance',
+      balanceExpiry: 'Balance Expiry',
+      balanceExpiryHint: 'Optional. This deposit will be removed when the selected time is reached.',
+      balanceExpiryFuture: 'Choose a future expiry time.',
       depositNotesPlaceholder:
         'e.g., New user registration bonus, promotional credit, compensation, etc.',
       withdrawNotesPlaceholder:
@@ -1029,11 +1032,19 @@ export default {
         finalPricePreview: 'Per-call price after current multiplier: {price}'
       },
       peakRate: {
-        enable: 'Enable peak rate multiplier',
-        peakStart: 'Peak start',
-        peakEnd: 'Peak end',
-        peakMultiplier: 'Peak multiplier',
-        multiplierHint: 'Applies to token billing multiplier; image tokens in token billing are also affected. 0 means peak token requests are billed at 0x.'
+        title: 'Happy Hour',
+        description: 'Schedule a daily promotional rate for this group. The window follows the server timezone.',
+        enable: 'Enable Happy Hour',
+        addEvent: 'Add event',
+        removeEvent: 'Remove event',
+        enableEvent: 'Enable event',
+        eventName: 'Event name',
+        defaultEventName: 'Happy Hour',
+        noEvents: 'No Happy Hour events. Add one to schedule a promotional rate.',
+        peakStart: 'Starts at',
+        peakEnd: 'Ends at',
+        peakMultiplier: 'Happy Hour multiplier',
+        multiplierHint: 'Applies during this daily server-time window to text, image, video, and per-request billing. 0 means free usage.'
       },
       profitControl: {
         enable: 'Enable profit control',

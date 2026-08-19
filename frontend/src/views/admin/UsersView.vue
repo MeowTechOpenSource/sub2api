@@ -149,7 +149,7 @@
                 <!-- Dropdown menu -->
                 <div
                   v-if="showFilterDropdown"
-                  class="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
+                  class="absolute right-0 top-full z-[100000010] mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
                 >
                   <!-- Built-in filters -->
                   <button
@@ -205,7 +205,7 @@
                 <!-- Dropdown menu -->
                 <div
                   v-if="showColumnDropdown"
-                  class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
+                  class="absolute right-0 top-full z-[100000010] mt-1 max-h-80 w-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
                 >
                   <button
                     v-for="col in toggleableColumns"
@@ -244,7 +244,7 @@
 
             <button
               v-if="selectedCount > 0"
-              class="btn btn-secondary flex-1 md:flex-initial"
+              class="btn btn-secondary bulk-limit-action flex-1 md:flex-initial"
               data-test="bulk-edit-limits"
               @click="showBulkEditModal = true"
             >
@@ -666,7 +666,7 @@
     <Teleport to="body">
       <div
         v-if="activeMenuId !== null && menuPosition"
-        class="action-menu-content fixed z-[9999] w-48 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 dark:bg-dark-800 dark:ring-white/10"
+        class="action-menu-content fixed z-[100000030] w-48 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 dark:bg-dark-800 dark:ring-white/10"
         :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }"
       >
         <div class="py-1">
@@ -1429,6 +1429,21 @@ const refreshCurrentPageSecondaryData = () => {
 // Action Menu State
 const activeMenuId = ref<number | null>(null)
 const menuPosition = ref<{ top: number; left: number } | null>(null)
+let activeMenuAnchor: HTMLElement | null = null
+
+const updateActionMenuPosition = () => {
+  if (activeMenuId.value === null || !activeMenuAnchor || !document.documentElement.contains(activeMenuAnchor)) return
+  const rect = activeMenuAnchor.getBoundingClientRect()
+  const width = 192
+  const estimatedHeight = 280
+  const edge = 8
+  const left = Math.max(edge, Math.min(rect.right - width, window.innerWidth - width - edge))
+  const below = rect.bottom + 4
+  const top = below + estimatedHeight <= window.innerHeight - edge
+    ? below
+    : Math.max(edge, rect.top - estimatedHeight - 4)
+  menuPosition.value = { top, left }
+}
 
 const openActionMenu = (user: AdminUser, e: MouseEvent) => {
   if (activeMenuId.value === user.id) {
@@ -1440,52 +1455,16 @@ const openActionMenu = (user: AdminUser, e: MouseEvent) => {
       return
     }
 
-    const rect = target.getBoundingClientRect()
-    const menuWidth = 200
-    const menuHeight = 240
-    const padding = 8
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-
-    let left, top
-
-    if (viewportWidth < 768) {
-      // 居中显示,水平位置
-      left = Math.max(padding, Math.min(
-        rect.left + rect.width / 2 - menuWidth / 2,
-        viewportWidth - menuWidth - padding
-      ))
-
-      // 优先显示在按钮下方
-      top = rect.bottom + 4
-
-      // 如果下方空间不够,显示在上方
-      if (top + menuHeight > viewportHeight - padding) {
-        top = rect.top - menuHeight - 4
-        // 如果上方也不够,就贴在视口顶部
-        if (top < padding) {
-          top = padding
-        }
-      }
-    } else {
-      left = Math.max(padding, Math.min(
-        e.clientX - menuWidth,
-        viewportWidth - menuWidth - padding
-      ))
-      top = e.clientY
-      if (top + menuHeight > viewportHeight - padding) {
-        top = viewportHeight - menuHeight - padding
-      }
-    }
-
-    menuPosition.value = { top, left }
+    activeMenuAnchor = target
     activeMenuId.value = user.id
+    updateActionMenuPosition()
   }
 }
 
 const closeActionMenu = () => {
   activeMenuId.value = null
   menuPosition.value = null
+  activeMenuAnchor = null
 }
 
 // Close menu when clicking outside
@@ -1826,9 +1805,11 @@ const handleWithdrawFromHistory = () => {
   }
 }
 
-// 滚动时关闭菜单
-const handleScroll = () => {
-  closeActionMenu()
+const handleScroll = (event: Event) => {
+  const target = event.target
+  if (!(target instanceof Element) || !target.closest('.action-menu-content')) {
+    updateActionMenuPosition()
+  }
 }
 
 onMounted(async () => {
@@ -1844,12 +1825,20 @@ onMounted(async () => {
   }
   document.addEventListener('click', handleClickOutside)
   window.addEventListener('scroll', handleScroll, true)
+  window.addEventListener('resize', updateActionMenuPosition)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   window.removeEventListener('scroll', handleScroll, true)
+  window.removeEventListener('resize', updateActionMenuPosition)
   clearTimeout(searchTimeout)
   abortController?.abort()
 })
 </script>
+
+<style scoped>
+.bulk-limit-action { border-color:rgba(39,107,83,.18); background:rgba(39,107,83,.06); color:#276b53; }
+.bulk-limit-action:hover { border-color:rgba(39,107,83,.3); background:rgba(39,107,83,.1); }
+.dark .bulk-limit-action { border-color:rgba(139,195,167,.18); background:rgba(39,107,83,.13); color:#9bcbb2; }
+</style>

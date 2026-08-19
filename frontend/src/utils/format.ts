@@ -4,6 +4,7 @@
  */
 
 import { i18n, getLocale } from '@/i18n'
+import { formatCompactDisplayCurrency, formatDisplayCurrency } from '@/utils/currency'
 
 const LOCALE_BCP47: Record<string, string> = {
   en: 'en',
@@ -49,7 +50,7 @@ export function formatRelativeTime(date: string | Date | null | undefined): stri
 export function formatNumber(num: number | null | undefined): string {
   if (num === null || num === undefined) return '0'
 
-  const locale = getLocale()
+  const locale = toBCP47(getLocale())
   const absNum = Math.abs(num)
 
   // Use Intl.NumberFormat for compact notation if supported and needed
@@ -69,19 +70,27 @@ export function formatNumber(num: number | null | undefined): string {
  * @returns 格式化后的字符串，如 "$1.25"
  */
 export function formatCurrency(amount: number | null | undefined, currency: string = 'USD'): string {
-  if (amount === null || amount === undefined) return '$0.00'
-
-  const locale = getLocale()
+  const locale = toBCP47(getLocale())
 
   // For very small amounts, show more decimals
-  const fractionDigits = amount > 0 && amount < 0.01 ? 6 : 2
+  const value = amount ?? 0
+  const fractionDigits = value > 0 && value < 0.01 ? 6 : 2
+
+  if (currency === 'USD') {
+    return formatDisplayCurrency(value, locale, fractionDigits)
+  }
 
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits
-  }).format(amount)
+  }).format(value)
+}
+
+/** Compact display currency for space-constrained UI such as the top navigation. */
+export function formatCompactCurrency(amount: number | null | undefined): string {
+  return formatCompactDisplayCurrency(amount, toBCP47(getLocale()))
 }
 
 /**

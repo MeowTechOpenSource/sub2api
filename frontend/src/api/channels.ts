@@ -5,6 +5,7 @@
 
 import { apiClient } from './client'
 import type { BillingMode } from '@/constants/channel'
+import type { HappyHourEvent } from '@/types'
 
 export interface UserAvailableGroup {
   id: number
@@ -18,8 +19,17 @@ export interface UserAvailableGroup {
   peak_start: string
   peak_end: string
   peak_rate_multiplier: number
+  peak_rate_active?: boolean
+  happy_hour_events?: HappyHourEvent[]
+  active_happy_hour?: HappyHourEvent
+  five_hour_quota_remaining?: number
+  five_hour_quota_total?: number
+  seven_day_quota_remaining?: number
+  seven_day_quota_total?: number
   /** true = 专属分组（小范围授权）；false = 公开分组。 */
   is_exclusive: boolean
+  /** Per-call web search price. Missing/null uses the backend default ($0.01). */
+  web_search_price_per_call?: number | null
 }
 
 export interface UserPricingInterval {

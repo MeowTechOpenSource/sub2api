@@ -205,6 +205,8 @@ export interface LoginAgreementDocument {
 }
 
 export interface PublicSettings {
+  currency_symbol?: string
+  currency_name?: string
   registration_enabled: boolean
   email_verify_enabled: boolean
   force_email_on_third_party_signup: boolean
@@ -543,6 +545,14 @@ export interface ReasoningEffortMapping {
   to: string
 }
 
+export interface HappyHourEvent {
+  name: string
+  enabled: boolean
+  start: string
+  end: string
+  rate_multiplier: number
+}
+
 export interface Group {
   id: number
   name: string
@@ -588,6 +598,9 @@ export interface Group {
   peak_start: string
   peak_end: string
   peak_rate_multiplier: number
+  happy_hour_events?: HappyHourEvent[]
+  happy_hour_active?: boolean
+  active_happy_hour?: HappyHourEvent
   // Claude Code 客户端限制
   claude_code_only: boolean
   fallback_group_id: number | null

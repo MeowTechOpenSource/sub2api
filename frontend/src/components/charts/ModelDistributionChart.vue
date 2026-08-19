@@ -143,13 +143,13 @@
                   {{ formatTokens(model.total_tokens) }}
                 </td>
                 <td class="py-1.5 text-right text-green-600 dark:text-green-400">
-                  ${{ formatCost(model.actual_cost) }}
+                  {{ formatCostWithCurrency(model.actual_cost) }}
                 </td>
                 <td v-if="showAccountCost" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
-                  ${{ formatCost(model.account_cost) }}
+                  {{ formatCostWithCurrency(model.account_cost) }}
                 </td>
                 <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
-                  ${{ formatCost(model.cost) }}
+                  {{ formatCostWithCurrency(model.cost) }}
                 </td>
               </tr>
               <tr v-if="expandedKey === `model-${model.model}`">
@@ -158,6 +158,7 @@
                     :items="breakdownItems"
                     :loading="breakdownLoading"
                     :show-account-cost="showAccountCost"
+                    :use-display-currency="useDisplayCurrency"
                   />
                 </td>
               </tr>
@@ -226,7 +227,7 @@
                 {{ formatTokens(item.tokens) }}
               </td>
               <td class="py-1.5 text-right text-green-600 dark:text-green-400">
-                ${{ formatCost(item.actual_cost) }}
+                {{ formatCostWithCurrency(item.actual_cost) }}
               </td>
             </tr>
           </tbody>
@@ -251,6 +252,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import type { ModelStat, UserSpendingRankingItem, UserBreakdownItem } from '@/types'
 import { getUserBreakdown } from '@/api/admin/dashboard'
+import { decorateDisplayCurrency } from '@/utils/currency'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -280,6 +282,7 @@ const props = withDefaults(defineProps<{
   startDate?: string
   endDate?: string
   filters?: Record<string, any>
+  useDisplayCurrency?: boolean
 }>(), {
   upstreamModelStats: () => [],
   mappingModelStats: () => [],
@@ -296,7 +299,8 @@ const props = withDefaults(defineProps<{
   enableBreakdown: true,
   showAccountCost: true,
   rankingLoading: false,
-  rankingError: false
+  rankingError: false,
+  useDisplayCurrency: false
 })
 
 const expandedKey = ref<string | null>(null)
@@ -336,11 +340,12 @@ const emit = defineEmits<{
 
 const enableRankingView = computed(() => props.enableRankingView)
 const showAccountCost = computed(() => props.showAccountCost)
+const useDisplayCurrency = computed(() => props.useDisplayCurrency)
 const distributionColspan = computed(() => showAccountCost.value ? 6 : 5)
 const activeView = ref<'model_distribution' | 'spending_ranking'>('model_distribution')
 
 const chartColors = [
-  '#3b82f6',
+  '#357f63',
   '#10b981',
   '#f59e0b',
   '#ef4444',
@@ -451,7 +456,7 @@ const doughnutOptions = computed(() => ({
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
           const formattedValue = props.metric === 'actual_cost'
-            ? `$${formatCost(value)}`
+            ? formatCostWithCurrency(value)
             : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`
         }
@@ -473,7 +478,7 @@ const rankingDoughnutOptions = computed(() => ({
           const value = context.raw as number
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
-          return `${context.label}: $${formatCost(value)} (${percentage}%)`
+          return `${context.label}: ${formatCostWithCurrency(value)} (${percentage}%)`
         }
       }
     }
@@ -521,5 +526,10 @@ const formatCost = (value: number | null | undefined): string => {
     return safeValue.toFixed(3)
   }
   return safeValue.toFixed(4)
+}
+
+const formatCostWithCurrency = (value: number | null | undefined): string => {
+  const formatted = formatCost(value)
+  return props.useDisplayCurrency ? decorateDisplayCurrency(formatted) : `$${formatted}`
 }
 </script>

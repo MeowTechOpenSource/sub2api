@@ -1,10 +1,32 @@
 <template>
   <AppLayout>
     <div class="space-y-6">
-      <UsageStatsCards :stats="usageStats" :show-account-cost="false" :strike-standard-cost="true" />
+      <header class="screen-header">
+        <div class="screen-header__copy">
+          <p class="screen-header__eyebrow">{{ t('nav.usage') }}</p>
+          <h1 class="screen-header__title">{{ t('usage.title') }}</h1>
+          <p class="screen-header__description">{{ t('usage.description') }}</p>
+        </div>
+        <div class="screen-header__actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            :disabled="activeTab === 'errors' ? errorLoading : loading"
+            @click="refreshData"
+          >
+            <Icon name="refresh" size="sm" :class="(activeTab === 'errors' ? errorLoading : loading) ? 'animate-spin' : ''" />
+            {{ t('common.refresh') }}
+          </button>
+          <button v-if="activeTab !== 'errors'" type="button" class="btn btn-primary" :disabled="exporting" @click="exportToCSV">
+            {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
+          </button>
+        </div>
+      </header>
+
+      <UsageStatsCards :stats="usageStats" :show-account-cost="false" :strike-standard-cost="true" use-display-currency />
 
       <div class="space-y-4">
-        <div class="card p-4">
+        <div class="screen-toolbar">
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.dashboard.timeRange') }}:</span>
@@ -34,6 +56,7 @@
             :show-account-cost="false"
             :start-date="startDate"
             :end-date="endDate"
+            use-display-currency
           />
           <GroupDistributionChart
             v-model:metric="groupDistributionMetric"
@@ -44,6 +67,7 @@
             :show-account-cost="false"
             :start-date="startDate"
             :end-date="endDate"
+            use-display-currency
           />
         </div>
 
@@ -61,12 +85,13 @@
             :title="t('usage.endpointDistribution')"
             :start-date="startDate"
             :end-date="endDate"
+            use-display-currency
           />
-          <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
+          <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" use-display-currency />
         </div>
       </div>
 
-      <div class="card p-6">
+      <div class="screen-toolbar">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div v-if="activeTab === 'errors'" class="flex flex-1 flex-wrap items-end gap-4">
             <div class="w-full sm:w-auto sm:min-w-[220px]">
@@ -122,9 +147,6 @@
           </div>
 
           <div class="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
-            <button type="button" @click="refreshData" :disabled="activeTab === 'errors' ? errorLoading : loading" class="btn btn-secondary">
-              {{ t('common.refresh') }}
-            </button>
             <button type="button" @click="resetFilters" class="btn btn-secondary">
               {{ t('common.reset') }}
             </button>
@@ -140,28 +162,25 @@
               </button>
               <div
                 v-if="showColumnDropdown"
-                class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
+                class="screen-menu right-0 top-full mt-2 w-52"
               >
                 <button
                   v-for="col in currentToggleableColumns"
                   :key="col.key"
                   type="button"
                   @click="toggleCurrentColumn(col.key)"
-                  class="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+                  class="screen-menu__item"
                 >
                   <span>{{ col.label }}</span>
                   <Icon v-if="isCurrentColumnVisible(col.key)" name="check" size="sm" class="text-primary-500" />
                 </button>
               </div>
             </div>
-            <button v-if="activeTab !== 'errors'" type="button" @click="exportToCSV" :disabled="exporting" class="btn btn-primary">
-              {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
-            </button>
           </div>
         </div>
       </div>
 
-      <div v-if="errorViewEnabled" class="flex gap-2 border-b border-gray-200 dark:border-dark-700">
+      <div v-if="errorViewEnabled" class="tabs w-fit">
         <button class="tab" :class="{ 'tab-active': activeTab === 'usage' }" @click="activeTab = 'usage'">
           {{ t('usage.tabs.usage') }}
         </button>
@@ -178,6 +197,7 @@
           :server-side-sort="true"
           :show-account-billing="false"
           :show-upstream-endpoint="false"
+          use-display-currency
           default-sort-key="created_at"
           default-sort-order="desc"
           @sort="handleSort"

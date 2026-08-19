@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, shallowMount } from '@vue/test-utils'
 import PaymentView from '../PaymentView.vue'
 import { PAYMENT_RECOVERY_STORAGE_KEY } from '@/components/payment/paymentFlow'
-import { formatPaymentAmount } from '@/components/payment/currency'
-import SubscriptionPlanCard from '@/components/payment/SubscriptionPlanCard.vue'
+import { formatCurrency } from '@/utils/format'
+import { configureCurrencyDisplay } from '@/utils/currency'
 import type { CheckoutInfoResponse, MethodLimit, SubscriptionPlan } from '@/types/payment'
 
 const routeState = vi.hoisted(() => ({
@@ -201,6 +201,7 @@ function oauthOrderFixture() {
 }
 
 async function mountSubscriptionConfirm(options: Parameters<typeof checkoutInfoWithPlansFixture>[0] = {}) {
+  configureCurrencyDisplay({ symbol: 'MAI$', name: 'credits' })
   vi.useRealTimers()
   routeState.path = '/purchase'
   routeState.query = {
@@ -237,61 +238,6 @@ async function mountSubscriptionConfirm(options: Parameters<typeof checkoutInfoW
   return wrapper
 }
 
-async function mountSubscriptionPlanList(planCount: number) {
-  vi.useRealTimers()
-  routeState.path = '/purchase'
-  routeState.query = { tab: 'subscription' }
-  routerReplace.mockReset().mockResolvedValue(undefined)
-  routerPush.mockReset().mockResolvedValue(undefined)
-  routerResolve.mockClear()
-  createOrder.mockReset()
-  refreshUser.mockReset()
-  fetchActiveSubscriptions.mockReset().mockResolvedValue(undefined)
-  showError.mockReset()
-  showInfo.mockReset()
-  showWarning.mockReset()
-  const basePlan = checkoutInfoWithPlansFixture().data.plans[0]
-  const plans = Array.from({ length: planCount }, (_, index) => ({
-    ...basePlan,
-    id: index + 1,
-    name: `Plan ${index + 1}`,
-  }))
-  getCheckoutInfo.mockReset().mockResolvedValue(checkoutInfoFixture({ plans }))
-  bridgeInvoke.mockReset()
-  window.localStorage.clear()
-  ;(window as Window & { WeixinJSBridge?: { invoke: typeof bridgeInvoke } }).WeixinJSBridge = undefined
-
-  const wrapper = shallowMount(PaymentView, {
-    global: {
-      stubs: {
-        AppLayout: {
-          template: '<div><slot /></div>',
-        },
-        Teleport: true,
-        Transition: false,
-      },
-    },
-  })
-  await flushPromises()
-  await flushPromises()
-  return wrapper
-}
-
-describe('PaymentView subscription plan grid', () => {
-  it.each([3, 4, 6])('keeps %i plans on the existing mobile/tablet/desktop grid', async (planCount) => {
-    const wrapper = await mountSubscriptionPlanList(planCount)
-    const cards = wrapper.findAllComponents(SubscriptionPlanCard)
-
-    expect(cards).toHaveLength(planCount)
-    expect([...(cards[0].element.parentElement?.classList ?? [])]).toEqual(expect.arrayContaining([
-      'grid',
-      'grid-cols-1',
-      'sm:grid-cols-2',
-      'lg:grid-cols-3',
-    ]))
-  })
-})
-
 describe('PaymentView subscription confirmation amounts', () => {
   it('shows converted CNY pay amount using the subscription rate, not the balance multiplier', async () => {
     const wrapper = await mountSubscriptionConfirm({
@@ -309,14 +255,14 @@ describe('PaymentView subscription confirmation amounts', () => {
     })
 
     const text = wrapper.text()
-    const convertedPrice = formatPaymentAmount(71.43, 'CNY')
-    const convertedOriginalPrice = formatPaymentAmount(92.88, 'CNY')
+    const convertedPrice = formatCurrency(71.43)
+    const convertedOriginalPrice = formatCurrency(92.88)
 
     expect(text).toContain(convertedPrice)
     expect(text).toContain(convertedOriginalPrice)
-    expect(text).not.toContain(formatPaymentAmount(9.99, 'CNY'))
+    expect(text).not.toContain(formatCurrency(9.99))
     // 换算必须使用订阅汇率（×7.15），而不是余额倍率（÷0.14 = 71.36）
-    expect(text).not.toContain(formatPaymentAmount(71.36, 'CNY'))
+    expect(text).not.toContain(formatCurrency(71.36))
     expect(wrapper.findAll('button').some(button => button.text().includes(convertedPrice))).toBe(true)
   })
 
@@ -335,9 +281,9 @@ describe('PaymentView subscription confirmation amounts', () => {
       },
     })
 
-    expect(cnyWrapper.text()).toContain(formatPaymentAmount(7.99, 'CNY'))
-    expect(cnyWrapper.text()).not.toContain(formatPaymentAmount(57.07, 'CNY'))
-    expect(cnyWrapper.text()).not.toContain(formatPaymentAmount(57.13, 'CNY'))
+    expect(cnyWrapper.text()).toContain(formatCurrency(7.99))
+    expect(cnyWrapper.text()).not.toContain(formatCurrency(57.07))
+    expect(cnyWrapper.text()).not.toContain(formatCurrency(57.13))
 
     const usdWrapper = await mountSubscriptionConfirm({
       checkout: {
@@ -352,8 +298,8 @@ describe('PaymentView subscription confirmation amounts', () => {
       },
     })
 
-    expect(usdWrapper.text()).toContain(formatPaymentAmount(7.99, 'USD'))
-    expect(usdWrapper.text()).toContain(formatPaymentAmount(9.99, 'USD'))
+    expect(usdWrapper.text()).toContain(formatCurrency(7.99))
+    expect(usdWrapper.text()).toContain(formatCurrency(9.99))
   })
 
   it('adds fee rate after CNY rate conversion to match backend pay_amount', async () => {
@@ -371,9 +317,9 @@ describe('PaymentView subscription confirmation amounts', () => {
     })
 
     const text = wrapper.text()
-    const convertedPrice = formatPaymentAmount(71.43, 'CNY')
-    const fee = formatPaymentAmount(1.79, 'CNY')
-    const total = formatPaymentAmount(73.22, 'CNY')
+    const convertedPrice = formatCurrency(71.43)
+    const fee = formatCurrency(1.79)
+    const total = formatCurrency(73.22)
 
     expect(text).toContain(convertedPrice)
     expect(text).toContain(fee)

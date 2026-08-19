@@ -101,8 +101,7 @@ import { usePaymentStore } from '@/stores/payment'
 import { paymentAPI } from '@/api/payment'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { isMobileDevice } from '@/utils/device'
-import { formatPaymentAmount, normalizePaymentCurrency } from '@/components/payment/currency'
-import { PAYMENT_RECOVERY_STORAGE_KEY, readPaymentRecoverySnapshot } from '@/components/payment/paymentFlow'
+import { formatCurrency } from '@/utils/format'
 import type { PaymentOrder } from '@/types/payment'
 import type { Stripe, StripeElements } from '@stripe/stripe-js'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -124,7 +123,6 @@ const stripeSubmitting = ref(false)
 const stripeSuccess = ref(false)
 const stripeReady = ref(false)
 const order = ref<PaymentOrder | null>(null)
-const currency = ref('CNY')
 const wechatQrUrl = ref('')
 const redirecting = ref(false)
 const showPaymentElement = ref(false)
@@ -137,7 +135,6 @@ onMounted(async () => {
   const orderId = Number(route.query.order_id)
   const clientSecret = String(route.query.client_secret || '')
   const method = String(route.query.method || '')
-  const resumeToken = typeof route.query.resume_token === 'string' ? route.query.resume_token : undefined
 
   if (!orderId || !clientSecret) {
     loading.value = false
@@ -146,20 +143,8 @@ onMounted(async () => {
   }
 
   try {
-    if (typeof window !== 'undefined') {
-      const restored = readPaymentRecoverySnapshot(
-        window.localStorage.getItem(PAYMENT_RECOVERY_STORAGE_KEY),
-        { resumeToken },
-      )
-      if (restored?.orderId === orderId) {
-        currency.value = normalizePaymentCurrency(restored.currency)
-      }
-    }
     const res = await paymentAPI.getOrder(orderId)
     order.value = res.data
-    if (res.data.currency) {
-      currency.value = normalizePaymentCurrency(res.data.currency)
-    }
 
     await paymentStore.fetchConfig()
     const publishableKey = paymentStore.config?.stripe_publishable_key
@@ -190,17 +175,8 @@ onMounted(async () => {
   }
 })
 
-const localeCode = computed(() => {
-  const raw = i18n.locale as unknown
-  if (typeof raw === 'string') return raw
-  if (raw && typeof raw === 'object' && 'value' in raw) {
-    return String((raw as { value?: string }).value || '')
-  }
-  return undefined
-})
-
 function formatGatewayAmount(value: number): string {
-  return formatPaymentAmount(value, currency.value, localeCode.value)
+  return formatCurrency(value)
 }
 
 async function confirmAlipay(stripe: Stripe, clientSecret: string, orderId: number) {

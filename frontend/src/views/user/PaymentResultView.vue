@@ -57,7 +57,7 @@
             </div>
             <div v-if="hasAmountFields(order) && order.amount !== order.pay_amount" class="flex justify-between">
               <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.creditedAmount') }}</span>
-              <span class="font-medium text-gray-900 dark:text-white">{{ order.order_type === 'balance' ? '$' + order.amount.toFixed(2) : formatGatewayAmount(order.amount) }}</span>
+              <span class="font-medium text-gray-900 dark:text-white">{{ formatGatewayAmount(order.amount) }}</span>
             </div>
             <div v-if="hasPaymentType(order)" class="flex justify-between">
               <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.paymentMethod') }}</span>
@@ -110,7 +110,7 @@ import { usePaymentStore } from '@/stores/payment'
 import { paymentAPI } from '@/api/payment'
 import type { PublicOrderVerifyResult } from '@/api/payment'
 import type { OrderStatus, PaymentOrder } from '@/types/payment'
-import { formatPaymentAmount, normalizePaymentCurrency } from '@/components/payment/currency'
+import { formatCurrency } from '@/utils/format'
 import { normalizePaymentMethodForDisplay, paymentMethodI18nKey } from './paymentUx'
 
 const i18n = useI18n()
@@ -123,7 +123,6 @@ type ResolvedOrder = PaymentOrder | PublicOrderVerifyResult
 
 const order = ref<ResolvedOrder | null>(null)
 const loading = ref(true)
-const currency = ref('CNY')
 
 interface ReturnInfo {
   outTradeNo: string
@@ -157,15 +156,6 @@ const feeAmount = computed(() => {
   return Math.round((order.value.pay_amount - baseAmount.value) * 100) / 100
 })
 
-const localeCode = computed(() => {
-  const raw = i18n.locale as unknown
-  if (typeof raw === 'string') return raw
-  if (raw && typeof raw === 'object' && 'value' in raw) {
-    return String((raw as { value?: string }).value || '')
-  }
-  return undefined
-})
-
 const isSuccess = computed(() => {
   return isSuccessStatus(order.value?.status)
 })
@@ -189,14 +179,11 @@ function normalizedOrderPaymentType(paymentType: string): string {
 }
 
 function formatGatewayAmount(value: number): string {
-  return formatPaymentAmount(value, currency.value, localeCode.value)
+  return formatCurrency(value)
 }
 
 function setResolvedOrder(nextOrder: ResolvedOrder | null): void {
   order.value = nextOrder
-  if (nextOrder && 'currency' in nextOrder && nextOrder.currency) {
-    currency.value = normalizePaymentCurrency(nextOrder.currency)
-  }
 }
 
 function hasOrderId(nextOrder: ResolvedOrder | null): nextOrder is PaymentOrder {
@@ -351,9 +338,6 @@ onMounted(async () => {
   })
   if (restored?.orderId) {
     orderId = restored.orderId
-  }
-  if (restored?.currency) {
-    currency.value = normalizePaymentCurrency(restored.currency)
   }
   if (!outTradeNo && restored?.outTradeNo) {
     outTradeNo = restored.outTradeNo

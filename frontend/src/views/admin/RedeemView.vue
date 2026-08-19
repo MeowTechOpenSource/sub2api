@@ -357,7 +357,7 @@
               </div>
             </template>
             <div>
-              <label class="input-label">{{ t('admin.redeem.codeExpiry') }}</label>
+              <label class="input-label">{{ generateForm.type === 'balance' ? t('admin.redeem.balanceExpiry') : t('admin.redeem.codeExpiry') }}</label>
               <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
                 <button
                   v-for="option in redeemCodeExpiryOptions"
@@ -384,6 +384,7 @@
                 class="input mt-2"
                 :placeholder="t('admin.redeem.customExpiryDays')"
               />
+              <p v-if="generateForm.type === 'balance'" class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ t('admin.redeem.balanceExpiryHint') }}</p>
             </div>
             <div>
               <label class="input-label">{{ t('admin.redeem.count') }}</label>

@@ -14,6 +14,7 @@ import (
 type OpenAIMessagesDispatchModelConfig = domain.OpenAIMessagesDispatchModelConfig
 type GroupModelsListConfig = domain.GroupModelsListConfig
 type ReasoningEffortMapping = domain.ReasoningEffortMapping
+type HappyHourEvent = domain.HappyHourEvent
 
 type Group struct {
 	ID             int64
@@ -313,6 +314,36 @@ func (g *Group) PeakMultiplierAt(now time.Time) float64 {
 		return g.PeakRateMultiplier
 	}
 	return 1.0
+}
+
+func HappyHourEventsFromGroup(g *Group) []HappyHourEvent {
+	if g == nil || !g.PeakRateEnabled || g.PeakStart == "" || g.PeakEnd == "" {
+		return []HappyHourEvent{}
+	}
+	return []HappyHourEvent{{
+		Name: "Happy Hour", Enabled: true, Start: g.PeakStart, End: g.PeakEnd,
+		RateMultiplier: g.PeakRateMultiplier,
+	}}
+}
+
+func ValidateHappyHourEvents(events []HappyHourEvent) error {
+	for i, event := range events {
+		if strings.TrimSpace(event.Name) == "" {
+			return fmt.Errorf("happy_hour_events[%d].name is required", i)
+		}
+		if event.RateMultiplier < 0 || math.IsNaN(event.RateMultiplier) || math.IsInf(event.RateMultiplier, 0) {
+			return fmt.Errorf("happy_hour_events[%d].rate_multiplier must be >= 0", i)
+		}
+		if !event.Enabled {
+			continue
+		}
+		start, startOK := parseMinutes(event.Start)
+		end, endOK := parseMinutes(event.End)
+		if !startOK || !endOK || start >= end {
+			return fmt.Errorf("happy_hour_events[%d] requires a valid same-day start/end window", i)
+		}
+	}
+	return nil
 }
 
 // ValidatePeakRateConfig 是高峰倍率配置的唯一校验来源，供 handler 与 service 层共用。

@@ -12,6 +12,11 @@
           <button v-if="operation === 'subtract'" type="button" @click="fillAllBalance" class="btn btn-secondary whitespace-nowrap">{{ t('admin.users.withdrawAll') }}</button>
         </div>
       </div>
+      <div v-if="operation === 'add'">
+        <label class="input-label">{{ t('admin.users.balanceExpiry') }}</label>
+        <input v-model="form.expiresAt" type="datetime-local" class="input" />
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ t('admin.users.balanceExpiryHint') }}</p>
+      </div>
       <div><label class="input-label">{{ t('admin.users.notes') }}</label><textarea v-model="form.notes" rows="3" class="input"></textarea></div>
       <div v-if="form.amount > 0" class="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950"><div class="flex items-center justify-between text-sm"><span class="text-gray-700 dark:text-gray-300">{{ t('admin.users.newBalance') }}:</span><span class="font-bold text-gray-900 dark:text-gray-100">${{ formatBalance(calculateNewBalance()) }}</span></div></div>
     </form>
@@ -35,8 +40,8 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 const props = defineProps<{ show: boolean, user: AdminUser | null, operation: 'add' | 'subtract' }>()
 const emit = defineEmits(['close', 'success']); const { t } = useI18n(); const appStore = useAppStore()
 
-const submitting = ref(false); const form = reactive({ amount: 0, notes: '' })
-watch(() => props.show, (v) => { if(v) { form.amount = 0; form.notes = '' } })
+const submitting = ref(false); const form = reactive({ amount: 0, notes: '', expiresAt: '' })
+watch(() => props.show, (v) => { if(v) { form.amount = 0; form.notes = ''; form.expiresAt = '' } })
 
 // 格式化余额：显示完整精度，去除尾部多余的0
 const formatBalance = (value: number) => {
@@ -76,7 +81,12 @@ const handleBalanceSubmit = async () => {
   }
   submitting.value = true
   try {
-    await adminAPI.users.updateBalance(props.user.id, form.amount, props.operation, form.notes)
+    const expiresAt = form.expiresAt ? new Date(form.expiresAt) : null
+    if (expiresAt && expiresAt.getTime() <= Date.now()) {
+      appStore.showError(t('admin.users.balanceExpiryFuture'))
+      return
+    }
+    await adminAPI.users.updateBalance(props.user.id, form.amount, props.operation, form.notes, expiresAt?.toISOString())
     appStore.showSuccess(t('common.success')); emit('success'); emit('close')
   } catch (e: any) {
     console.error('Failed to update balance:', e)

@@ -506,6 +506,20 @@ func (s *adminServiceImpl) BatchUpdateLimits(ctx context.Context, userIDs []int6
 }
 
 func (s *adminServiceImpl) UpdateUserBalance(ctx context.Context, userID int64, balance float64, operation string, notes string) (*User, error) {
+	return s.UpdateUserBalanceWithExpiry(ctx, userID, balance, operation, notes, nil)
+}
+
+func (s *adminServiceImpl) UpdateUserBalanceWithExpiry(ctx context.Context, userID int64, balance float64, operation string, notes string, expiresAt *time.Time) (*User, error) {
+	if expiresAt != nil {
+		if operation != "add" {
+			return nil, fmt.Errorf("balance expiry is only supported for additions")
+		}
+		expires := expiresAt.UTC()
+		if !expires.After(time.Now().UTC()) {
+			return nil, fmt.Errorf("balance expiry must be in the future")
+		}
+		expiresAt = &expires
+	}
 	// 余额调整必须走原子接口：先读后整行写回会把并发的计费扣款覆盖掉。
 	var (
 		change BalanceChange
@@ -557,18 +571,25 @@ func (s *adminServiceImpl) UpdateUserBalance(ctx context.Context, userID int64, 
 		}
 
 		adjustmentRecord := &RedeemCode{
-			Code:   code,
-			Type:   AdjustmentTypeAdminBalance,
-			Value:  balanceDiff,
-			Status: StatusUsed,
-			UsedBy: &user.ID,
-			Notes:  notes,
+			Code:      code,
+			Type:      AdjustmentTypeAdminBalance,
+			Value:     balanceDiff,
+			Status:    StatusUsed,
+			UsedBy:    &user.ID,
+			Notes:     notes,
+			ExpiresAt: expiresAt,
 		}
 		now := time.Now()
 		adjustmentRecord.UsedAt = &now
 
 		if err := s.redeemCodeRepo.Create(ctx, adjustmentRecord); err != nil {
 			logger.LegacyPrintf("service.admin", "failed to create balance adjustment redeem code: %v", err)
+		} else if expiresAt != nil && balanceDiff > 0 {
+			if creditRepo, ok := s.userRepo.(RedeemBalanceCreditRepository); ok {
+				if err := creditRepo.GrantRedeemBalanceCredit(ctx, userID, adjustmentRecord.ID, balanceDiff, *expiresAt); err != nil {
+					logger.LegacyPrintf("service.admin", "failed to create expiring balance grant: user_id=%d err=%v", userID, err)
+				}
+			}
 		}
 	}
 

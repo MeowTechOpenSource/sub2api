@@ -1,9 +1,10 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createPinia } from "pinia";
 import { createI18n } from "vue-i18n";
 import type { SubscriptionPlan } from "@/types/payment";
 import SubscriptionPlanCard from "../SubscriptionPlanCard.vue";
+import { configureCurrencyDisplay } from "@/utils/currency";
 
 const i18n = createI18n({
   legacy: false,
@@ -52,6 +53,7 @@ const mountPlanCard = (groupPlatform: string, overrides: Partial<SubscriptionPla
   });
 
 describe("SubscriptionPlanCard", () => {
+  beforeEach(() => configureCurrencyDisplay({ symbol: "MAI$", name: "credits" }));
   it("does not show Antigravity model scopes for OpenAI plans", () => {
     const text = mountPlanCard("openai").text();
 
@@ -78,13 +80,13 @@ describe("SubscriptionPlanCard", () => {
     expect(mountPlanCard("openai", { validity_days: 30, validity_unit: "day" }).text()).toContain("/ 30payment.days");
   });
 
-  it("uses the configured currency symbol while preserving USD for legacy plans", () => {
+  it("uses the configured display currency regardless of the plan's storage currency", () => {
     const cnyPlan = mountPlanCard("openai", { currency: "CNY", original_price: 20 }).text();
 
-    expect(cnyPlan).toContain("¥10CNY");
-    expect(cnyPlan).toContain("¥20CNY");
-    expect(mountPlanCard("openai", { currency: "USD" }).text()).toContain("$10USD");
-    expect(mountPlanCard("openai", { currency: "" }).text()).toContain("$10");
+    expect(cnyPlan).toContain("MAI$10.00");
+    expect(cnyPlan).toContain("MAI$20.00");
+    expect(mountPlanCard("openai", { currency: "USD" }).text()).toContain("MAI$10.00");
+    expect(mountPlanCard("openai", { currency: "" }).text()).toContain("MAI$10.00");
   });
 
   it.each([
