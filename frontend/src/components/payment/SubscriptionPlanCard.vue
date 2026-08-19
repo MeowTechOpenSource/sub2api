@@ -26,7 +26,8 @@
         </div>
         <div class="shrink-0 text-right">
           <div class="flex items-baseline gap-1">
-            <span :class="['text-2xl font-extrabold tracking-tight', textClass]">{{ formatCurrency(plan.price) }}</span>
+            <span class="text-xs text-gray-400 dark:text-dark-500">{{ planCurrencySymbol }}</span>
+            <span :class="['text-2xl font-extrabold tracking-tight', textClass]">{{ formattedPlanPrice }}</span>
           </div>
           <div class="flex items-center justify-end gap-1">
             <span :class="['inline-flex shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium', badgeLightClass]">
@@ -111,6 +112,7 @@ import { useAppStore } from '@/stores/app'
 import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 import { planValiditySuffix } from './validity'
 import { formatCurrency } from '@/utils/format'
+import { getCurrencySymbol } from '@/utils/currency'
 import {
   platformAccentBarClass,
   platformBadgeLightClass,
@@ -173,4 +175,9 @@ const modelScopeLabels = computed(() => {
 })
 
 const validitySuffix = computed(() => planValiditySuffix(props.plan, t))
+const planCurrencySymbol = computed(() => getCurrencySymbol())
+const formattedPlanPrice = computed(() => {
+  const digits = props.plan.price > 0 && props.plan.price < 0.01 ? 6 : 2
+  return props.plan.price.toFixed(digits)
+})
 </script>

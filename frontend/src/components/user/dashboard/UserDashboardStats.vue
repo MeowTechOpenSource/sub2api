@@ -23,8 +23,8 @@
   </div>
 
   <div class="dashboard-metrics">
-    <div><span>{{ t('dashboard.todayTokens') }}</span><strong>{{ formatTokens(stats?.today_tokens || 0) }}</strong><small>{{ t('dashboard.input') }} {{ formatTokens(stats?.today_input_tokens || 0) }} · {{ t('dashboard.output') }} {{ formatTokens(stats?.today_output_tokens || 0) }}</small></div>
-    <div><span>{{ t('dashboard.totalTokens') }}</span><strong>{{ formatTokens(stats?.total_tokens || 0) }}</strong><small>{{ t('dashboard.input') }} {{ formatTokens(stats?.total_input_tokens || 0) }} · {{ t('dashboard.output') }} {{ formatTokens(stats?.total_output_tokens || 0) }}</small></div>
+    <div><span>{{ t('dashboard.todayTokens') }}</span><strong>{{ formatTokens(stats?.today_tokens || 0) }}</strong><small>{{ t('dashboard.input') }} {{ formatTokens(stats?.today_input_tokens || 0) }} · {{ t('dashboard.output') }} {{ formatTokens(stats?.today_output_tokens || 0) }} · {{ t('dashboard.cache') }} {{ formatTokens((stats?.today_cache_creation_tokens || 0) + (stats?.today_cache_read_tokens || 0)) }}</small></div>
+    <div><span>{{ t('dashboard.totalTokens') }}</span><strong>{{ formatTokens(stats?.total_tokens || 0) }}</strong><small>{{ t('dashboard.input') }} {{ formatTokens(stats?.total_input_tokens || 0) }} · {{ t('dashboard.output') }} {{ formatTokens(stats?.total_output_tokens || 0) }} · {{ t('dashboard.cache') }} {{ formatTokens((stats?.total_cache_creation_tokens || 0) + (stats?.total_cache_read_tokens || 0)) }}</small></div>
     <div><span>{{ t('dashboard.performance') }}</span><strong>{{ formatTokens(stats?.rpm || 0) }} <em>RPM</em></strong><small>{{ formatTokens(stats?.tpm || 0) }} TPM</small></div>
     <div><span>{{ t('dashboard.avgResponse') }}</span><strong>{{ formatDuration(stats?.average_duration_ms || 0) }}</strong><small>{{ t('dashboard.averageTime') }}</small></div>
   </div>

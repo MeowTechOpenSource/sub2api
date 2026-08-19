@@ -1,11 +1,11 @@
 <template>
   <div class="plaza-pricing-table" :style="accentStyle">
     <div class="mobile-models">
-      <article v-for="m in sortedModels" :key="`mobile-${m.name}`" class="mobile-model">
+      <article v-for="m in sortedModels" :key="`mobile-${m.platform}:${m.name}`" class="mobile-model">
         <header>
           <span class="model-mark"><ModelIcon :model="m.name" size="22px" /></span>
           <div><strong>{{ m.name }}</strong><small>{{ m.platform }}</small></div>
-          <span class="mobile-rate">{{ finalRate }}x</span>
+          <span class="mobile-rate">{{ usesIndependentImageRate(m) ? requestRate(m) : finalRate }}x</span>
         </header>
         <div v-if="billingMode(m) === BILLING_MODE_TOKEN" class="mobile-prices">
           <div><span>{{ t('modelPlaza.table.input') }}</span><strong>{{ paidPerMillion(m.pricing?.input_price) }}</strong><small>{{ official(m.official_pricing?.input_price) }}</small></div>
@@ -14,7 +14,7 @@
         </div>
         <div v-else class="mobile-request-price">
           <span>{{ billingModeLabel(m) }}</span>
-          <strong>{{ paidRequestPrice(m.pricing?.per_request_price) }} {{ perUnitSuffix(m) }}</strong>
+          <strong>{{ paidRequestPrice(m, m.pricing?.per_request_price) }} {{ perUnitSuffix(m) }}</strong>
         </div>
         <footer><span class="paid-key">{{ t('modelPlaza.table.yourPriceShort') }}</span><span>{{ t('modelPlaza.table.officialPrice') }}</span></footer>
       </article>
@@ -79,14 +79,17 @@
       <tbody>
         <tr
           v-for="m in sortedModels"
-          :key="m.name"
+          :key="`${m.platform}:${m.name}`"
           class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50/70 dark:border-dark-800 dark:hover:bg-dark-800/50"
         >
           <!-- 模型名 + 非 token 计费模式徽章 -->
           <td class="border-r border-gray-100 py-2.5 pl-5 pr-4 align-middle dark:border-dark-700/60">
             <div class="model-name-cell">
               <span class="model-mark"><ModelIcon :model="m.name" size="23px" /></span>
-              <div><span class="font-medium text-gray-900 dark:text-white">{{ m.name }}</span></div>
+              <div>
+                <span class="font-medium text-gray-900 dark:text-white">{{ m.name }}</span>
+                <small v-if="platform && m.platform !== platform">{{ platformLabel(m.platform) }}</small>
+              </div>
               <span
                 v-if="billingMode(m) !== BILLING_MODE_TOKEN"
                 class="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-dark-700/70 dark:text-dark-300"
@@ -155,13 +158,13 @@
                   class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-800 dark:bg-dark-700/60 dark:text-gray-200"
                 >
                   <span class="font-sans text-gray-400 dark:text-dark-500">{{ tierLabel(iv) }}</span>
-                  {{ paidRequestPrice(iv.per_request_price)
+                  {{ paidRequestPrice(m, iv.per_request_price)
                   }}<span class="font-sans text-gray-400 dark:text-dark-500">{{ perUnitSuffix(m) }}</span>
                 </span>
               </div>
               <template v-else-if="m.pricing?.per_request_price != null">
                 <span class="font-mono font-semibold text-gray-900 dark:text-gray-50">
-                  {{ paidRequestPrice(m.pricing.per_request_price) }}
+                  {{ paidRequestPrice(m, m.pricing.per_request_price) }}
                 </span>
                 <span class="ml-1 text-xs text-gray-400 dark:text-dark-500">{{ perUnitSuffix(m) }}</span>
               </template>
@@ -203,7 +206,8 @@
           <td
             class="border-l border-gray-100 py-2.5 pl-3 pr-5 text-right align-middle font-mono text-xs dark:border-dark-700/60"
           >
-            <template v-if="hasCustomRate">
+            <span v-if="usesIndependentImageRate(m)" class="font-bold text-gray-700 dark:text-gray-300">{{ requestRate(m) }}x</span>
+            <template v-else-if="hasCustomRate">
               <span class="mr-1 text-gray-400 line-through dark:text-dark-500">{{ rateMultiplier }}x</span>
               <span class="font-bold text-primary-600 dark:text-primary-400">{{ finalRate }}x</span>
             </template>
@@ -220,7 +224,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatScaled } from '@/utils/pricing'
-import { platformAccentColor } from '@/utils/platformColors'
+import { platformAccentColor, platformLabel } from '@/utils/platformColors'
 import {
   BILLING_MODE_TOKEN,
   BILLING_MODE_IMAGE,
@@ -240,6 +244,8 @@ const props = defineProps<{
   userRateMultiplier?: number | null
   /** Active Happy Hour multiplier, applied after the user's group rate. */
   eventRateMultiplier?: number
+  imageRateIndependent?: boolean
+  imageRateMultiplier?: number | null
 }>()
 
 const { t } = useI18n()
@@ -295,9 +301,17 @@ function paidPerMillion(value: number | null | undefined): string {
 }
 
 /** 按次 / 按图片单价(乘生效倍率,不换算 1M)。 */
-function paidRequestPrice(value: number | null | undefined): string {
+function usesIndependentImageRate(m: PlazaModel): boolean {
+  return billingMode(m) === BILLING_MODE_IMAGE && props.imageRateIndependent === true
+}
+
+function requestRate(m: PlazaModel): number {
+  return usesIndependentImageRate(m) ? (props.imageRateMultiplier ?? 1) : finalRate.value
+}
+
+function paidRequestPrice(m: PlazaModel, value: number | null | undefined): string {
   if (value == null) return '-'
-  return formatScaled(value * finalRate.value, 1, MIN_DECIMALS)
+  return formatScaled(value * requestRate(m), 1, MIN_DECIMALS)
 }
 
 /** 官方参考价不乘倍率。 */

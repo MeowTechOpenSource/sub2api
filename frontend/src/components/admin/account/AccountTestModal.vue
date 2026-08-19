@@ -420,12 +420,14 @@ const startTest = async () => {
     const requestBody: {
       model_id: string
       prompt: string
-      mode?: 'default' | 'compact'
+      mode?: 'default' | 'compact' | 'text'
     } = {
       model_id: selectedModelId.value,
       prompt: supportsImageTest.value ? testPrompt.value.trim() : ''
     }
-    if (isOpenAIAccount.value) {
+    if (props.account?.platform === 'grok') {
+      requestBody.mode = 'text'
+    } else if (isOpenAIAccount.value) {
       requestBody.mode = testMode.value
     }
 
